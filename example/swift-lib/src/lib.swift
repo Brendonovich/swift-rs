@@ -1,4 +1,5 @@
 import SwiftRs
+import AppKit
 
 @_cdecl("get_file_thumbnail_base64")
 public func getFileThumbnailBase64(path: SRString) -> SRString {

@@ -39,22 +39,6 @@ public class SRString: SRData {
     }
 }
 
-@_cdecl("return_data")
-public func returnData() -> SRData {
-    return SRData([1,2,3])
-}
-
-
-@_cdecl("return_string")
-public func returnString() -> SRString {
-    return SRString("123456")
-}
-
-@_cdecl("echo_string")
-public func echoString(string: SRString) {
-    print(string.to_string())
-}
-
 // SRstring pointer is passed to rust correctly
 // data pointer is passed to rust correctly
 // guessing that the type of SRArray isn't the same
@@ -65,14 +49,3 @@ public func allocate_string(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let SRstring = SRString(string);
     return SRstring
 }
-
-@_cdecl("get_file_thumbnail_base64")
-public func getFileThumbnailBase64(path: SRString) -> SRString {
-    let path = path.to_string();
-    
-    let image = NSWorkspace.shared.icon(forFile: path)
-    let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!.representation(using: .png, properties: [:])!
-
-    return SRString(bitmap.base64EncodedString())
-}
-

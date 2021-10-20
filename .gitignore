@@ -1,3 +1,2 @@
-/target
-Cargo.lock
-output.txt
+.build/
+target/

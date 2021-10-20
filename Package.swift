@@ -24,6 +24,6 @@ let package = Package(
         .target(
             name: "SwiftRs",
             dependencies: [],
-            path: "src_swift")
+            path: "src-swift")
     ]
 )

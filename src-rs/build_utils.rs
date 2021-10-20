@@ -1,7 +1,4 @@
-use std::{
-    env::{self},
-    process::Command,
-};
+use std::{env, process::Command};
 
 use serde::Deserialize;
 
@@ -72,7 +69,7 @@ pub fn link_swift_package(package_name: &str, package_root: &str) {
     {
         panic!("Failed to compile swift package {}", package_name);
     }
-    
+
     let swift_target_info = get_swift_target_info();
 
     println!(

@@ -9,14 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
-name = "build-utils"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "itoa"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -82,7 +74,8 @@ name = "swift-rs"
 version = "0.1.0"
 dependencies = [
  "base64",
- "build-utils",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

@@ -7,7 +7,7 @@ build = "src/build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-swift-rs = {path = "../"}
+swift-rs = { path = "../" }
 
 [build-dependencies]
-swift-rs = {path = "../"}
+swift-rs = { path = "../" }

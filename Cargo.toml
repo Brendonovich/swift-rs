@@ -1,5 +1,17 @@
-[workspace]
-members = [
-    "src_rs/build-utils",
-    "src_rs/swift-rs",
-]
+[package]
+name = "swift-rs"
+version = "0.1.0"
+description = "Call Swift from Rust with ease!"
+authors = ["you"]
+license = "MIT"
+repository = "https://github.com/Brendonovich/swift-rs"
+edition = "2018"
+exclude=["/src-swift", "*.swift"]
+
+[lib]
+path = "src-rs/lib.rs"
+
+[dependencies]
+base64 = "0.13.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

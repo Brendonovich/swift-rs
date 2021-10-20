@@ -1,10 +1,14 @@
 import Foundation
-import AppKit
 
 // Size: 24 bytes
 public class SRArray<T>: NSObject {
     var pointer: UnsafePointer<T>
     var length: Int
+    
+    public override init() {
+        self.pointer = UnsafePointer([]);
+        self.length = 0;
+    }
     
     public init(_ data: [T]) {
         let mut_data = UnsafeMutablePointer<T>.allocate(capacity: data.count)
@@ -18,7 +22,11 @@ public class SRArray<T>: NSObject {
 // Size: 16 bytes
 public class SRData: NSObject {
     var data: SRArray<UInt8>
-
+    
+    public override init() {
+        self.data = SRArray<UInt8>.init()
+    }
+    
     public init(_ data: [UInt8]) {
         self.data = SRArray(data)
     }
@@ -30,6 +38,10 @@ public class SRData: NSObject {
 
 // Size: 16 bytes
 public class SRString: SRData {
+    public override init() {
+        super.init([])
+    }
+
     public init(_ string: String) {
         super.init(Array(string.utf8))
     }

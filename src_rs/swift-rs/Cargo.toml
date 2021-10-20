@@ -1,0 +1,19 @@
+[package]
+name = "swift-rs"
+version = "0.1.0"
+description = "Call Swift from Rust with ease!"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2018"
+build = "src/build.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+base64 = "0.13.0"
+build_utils = { path = "../build-utils", version = "0.1.0" }
+
+[build-dependencies]
+build_utils = { path = "../build-utils", version = "0.1.0" }

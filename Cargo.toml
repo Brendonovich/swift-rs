@@ -1,19 +1,5 @@
-[package]
-name = "swift-rs"
-version = "0.1.0"
-description = "Connect Rust & Swift with ease!"
-authors = ["you"]
-license = ""
-repository = ""
-edition = "2018"
-build = "src_rs/build.rs"
-
-[lib]
-path="src_rs/lib.rs"
-
-[dependencies]
-base64 = "0.13.0"
-build_utils = {path = "src_rs/build_utils"}
-
-[build-dependencies]
-build_utils = {path = "src_rs/build_utils"}
+[workspace]
+members = [
+    "src_rs/build-utils",
+    "src_rs/swift-rs",
+]

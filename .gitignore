@@ -1,3 +1,6 @@
 .build/
 target/
 .swiftpm/
+.idea/
+.DS_Store
+icon.txt

@@ -1,9 +1,8 @@
 import Foundation
 
-// Size: 24 bytes
 public class SRArray<T>: NSObject {
-    var pointer: UnsafePointer<T>
-    var length: Int
+    public var pointer: UnsafePointer<T>
+    public var length: Int
     
     public override init() {
         self.pointer = UnsafePointer([]);
@@ -19,9 +18,16 @@ public class SRArray<T>: NSObject {
     }
 }
 
-// Size: 16 bytes
+public class SRObjectArray: NSObject {
+    var data: SRArray<NSObject>
+    
+    public init(_ data: [NSObject]) {
+        self.data = SRArray(data)
+    }
+}
+
 public class SRData: NSObject {
-    var data: SRArray<UInt8>
+    public var data: SRArray<UInt8>
     
     public override init() {
         self.data = SRArray<UInt8>.init()
@@ -36,7 +42,6 @@ public class SRData: NSObject {
     }
 }
 
-// Size: 16 bytes
 public class SRString: SRData {
     public override init() {
         super.init([])
@@ -49,15 +54,16 @@ public class SRString: SRData {
     public func to_string() -> String {
         return String(bytes: self.to_data(), encoding: .utf8)!
     }
+    
+    deinit {
+        print("Deinit string \(self.to_string())")
+    }
 }
 
-// SRstring pointer is passed to rust correctly
-// data pointer is passed to rust correctly
-// guessing that the type of SRArray isn't the same
 @_cdecl("allocate_string")
-public func allocate_string(data: UnsafePointer<UInt8>, size: Int) -> SRString {
+public func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let buffer = UnsafeBufferPointer(start: data, count: size)
-    let string = String(bytes: buffer, encoding: .utf8)!;
-    let SRstring = SRString(string);
-    return SRstring
+    let string = String(bytes: buffer, encoding: .utf8)!
+    let ret = SRString(string)
+    return ret
 }

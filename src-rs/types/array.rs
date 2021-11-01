@@ -1,13 +1,29 @@
+use std::ops::Deref;
+
+use super::SRObject;
+
+// SRArray is wrapped in SRObject since the
+// Swift implementation extends NSObject
+pub type SRObjectArray<T> = SRObject<SRArray<SRObject<T>>>;
+
 #[derive(Debug)]
 #[repr(C)]
-pub struct SRArray<T> {
-    _nsobject_offset: u8,
-    data: *mut T,
-    pub length: usize,
+pub struct SRArray<T>(SRObject<SRArrayImpl<T>>);
+
+#[derive(Debug)]
+#[repr(C)]
+pub struct SRArrayImpl<T> {
+    data: *const T,
+    length: usize,
 }
 
-impl<T> SRArray<T> {
-    pub fn into_slice(&self) -> &'static [T] {
-        unsafe { std::slice::from_raw_parts(self.data, self.length) }
+impl<T> Deref for SRArray<T> {
+    type Target = [T];
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            let inner = &*self.0;
+            std::slice::from_raw_parts(inner.data, inner.length)
+        }
     }
 }

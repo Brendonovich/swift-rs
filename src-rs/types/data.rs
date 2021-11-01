@@ -1,18 +1,25 @@
-use super::array::SRArray;
+use super::{SRObject, array::SRArray};
+
+use std::ops::Deref;
 
 #[derive(Debug)]
 #[repr(C)]
-pub struct SRData {
-    _nsobject_offset: u8,
-    data: *mut SRArray<u8>,
+pub struct SRData(SRObject<SRDataImpl>);
+
+#[derive(Debug)]
+#[repr(C)]
+struct SRDataImpl(SRArray<u8>);
+
+impl Deref for SRData {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        &*self.0.0
+    }
 }
 
-impl SRData {
-    pub fn into_slice(&self) -> &'static [u8] {
-        unsafe { (*self.data).into_slice() }
-    }
-
-    pub fn data(&self) -> &SRArray<u8> {
-        unsafe { &*(self.data) }
+impl AsRef<[u8]> for SRData {
+    fn as_ref(&self) -> &[u8] {
+        &*self
     }
 }

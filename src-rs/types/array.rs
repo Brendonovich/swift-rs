@@ -21,9 +21,12 @@ impl<T> Deref for SRArray<T> {
     type Target = [T];
 
     fn deref(&self) -> &Self::Target {
-        unsafe {
-            let inner = &*self.0;
-            std::slice::from_raw_parts(inner.data, inner.length)
-        }
+        self.0.as_slice()
+    }
+}
+
+impl<T> SRArrayImpl<T> {
+    pub fn as_slice(&self) -> &[T] {
+        unsafe { std::slice::from_raw_parts(self.data, self.length) }
     }
 }

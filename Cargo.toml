@@ -1,6 +1,6 @@
 [package]
 name = "swift-rs"
-version = "0.2.1"
+version = "0.2.2"
 description = "Call Swift from Rust with ease!"
 authors = ["you"]
 license = "MIT"

@@ -1,8 +1,12 @@
-use std::{fmt::{Display, Error, Formatter}, ops::Deref};
+use std::{
+    fmt::{Display, Error, Formatter},
+    ops::Deref,
+};
 
-use crate::externs::allocate_string;
+use serde::{Deserialize, Serialize};
 
 use super::data::SRData;
+use crate::externs::allocate_string;
 
 #[derive(Debug)]
 #[repr(C)]
@@ -37,5 +41,24 @@ impl From<&str> for SRString {
 impl Display for SRString {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         self.as_str().fmt(f)
+    }
+}
+
+impl Serialize for SRString {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'a> Deserialize<'a> for SRString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        let string = String::deserialize(deserializer)?;
+        Ok(SRString::from(string.as_str()))
     }
 }

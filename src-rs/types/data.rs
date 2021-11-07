@@ -1,3 +1,5 @@
+use serde::{Serialize, Serializer};
+
 use super::{SRObject, array::SRArray};
 
 use std::ops::Deref;
@@ -21,5 +23,14 @@ impl Deref for SRData {
 impl AsRef<[u8]> for SRData {
     fn as_ref(&self) -> &[u8] {
         &*self
+    }
+}
+
+impl Serialize for SRData {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_bytes(self)
     }
 }

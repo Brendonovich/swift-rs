@@ -379,6 +379,12 @@ Currently, the only types that can be used as function arguments are number type
 
 Mutating values across Swift and Rust is not currently an aim for this library, it is purely for providing arguments and returning values. Besides, this would go against Rust's programming model, potentially allowing for multiple shared references to a value instead of interior mutability via something like a Mutex.
 
+## Why?
+
+I was helping my friend [Jamie Pine](https://twitter.com/jamiepine) with a desktop app made with [Tauri](https://twitter.com/TauriApps), an Electron alternative that uses Rust as its backend. One of the features Jamie wanted was to get the preview icon for files on his filesystem, which can be done with the [icon(forFile:)](https://developer.apple.com/documentation/appkit/nsworkspace/1528158-icon) function on the app's `NSWorkspace`. This requires accessing the static `shared` property of `NSWorkspace`, something that after some research wasn't possible using the [Rust Objective-C bindings](https://docs.rs/objc/0.2.7/objc/) (since from what I can tell it only supports sending and receiving messages, not accessing static properties), and I could figure out if [swift-bindgen](https://github.com/nvzqz/swift-bindgen) could do the job. So I created this library and the rest is history!
+
+The examples folder is actually the same Swift code that Jamie uses in his project. While there's probably other, less unsafe ways to interop with Swift, its been both my and Jamie's experience that leveraging Swift for it's native API access and Rust for building applications is quite nice compared to wrangling Swift with calls from Rust similar to how the `objc` crate has you do. This library probably has a littany of problems around memory management and leaks since I'm not that well versed in the Swift runtime, but it gets the job done!
+
 ## Todo
 
 - Swift class deallocation from rust (implementing Drop and using deallocate\_{type} methods)

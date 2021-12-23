@@ -19,7 +19,7 @@ extern "C" {
 fn main() {
     let path = "/Users";
     let thumbnail = unsafe { get_file_thumbnail_base64(path.into()) };
-    std::fs::write("icon.txt", thumbnail).unwrap();
+    std::fs::write("icon.txt", &thumbnail).unwrap();
     println!("Wrote folder icon base64 to icon.txt");
     
     let mounts = unsafe { get_mounts() };

@@ -27,7 +27,7 @@ pub struct SwiftTarget {
     pub paths: SwiftPaths,
 }
 
-const MACOS_TARGET_VERSION: &str = "11";
+const MACOS_TARGET_VERSION: &str = "12";
 
 pub fn get_swift_target_info() -> SwiftTarget {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();

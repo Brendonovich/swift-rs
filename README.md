@@ -83,14 +83,14 @@ fn main() {
 
 For reference, here is a table for most primitive Rust <-> Swift type conversions
 
-|  Rust   |   Swift    |
-| :-----: | :--------: |
-| `usize` |   `UInt`   |
-| `isize` |   `Int`    |
-| `i(N)`  |  `Int(N)`  |
-| `u(N)`  | `UInt(N)`  |
-| `f(N)`  | `Float(N)` |
-| `bool`  |   `Bool`   |
+|  Rust   |  Swift   |
+| :-----: | :------: |
+| `usize` |  `UInt`  |
+| `isize` |  `Int`   |
+|  `iN`   |  `IntN`  |
+|  `uN`   | `UIntN`  |
+|  `fN`   | `FloatN` |
+| `bool`  |  `Bool`  |
 
 ## Returning objects from Swift
 

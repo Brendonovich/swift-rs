@@ -1,10 +1,16 @@
 use std::ops::Deref;
 
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Serialize, Serializer};
 
 #[derive(Debug)]
 #[repr(C)]
 pub struct SRObject<T>(*const SRObjectImpl<T>);
+
+impl<T> SRObject<T> {
+    pub fn is_null(&self) -> bool {
+        self.0.is_null()
+    }
+}
 
 #[derive(Debug)]
 #[repr(C)]

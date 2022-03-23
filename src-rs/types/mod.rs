@@ -7,6 +7,3 @@ pub use array::*;
 pub use data::*;
 pub use string::*;
 pub use object::*;
-
-#[derive(Debug)]
-pub struct Ptr<T>(pub *mut T);

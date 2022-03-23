@@ -13,5 +13,8 @@ path = "src-rs/lib.rs"
 
 [dependencies]
 base64 = "0.13.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"], optional = true}
+serde_json = {version = "1.0", optional = true}
+
+[features]
+build = ["serde", "serde_json"]

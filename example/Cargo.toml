@@ -10,4 +10,4 @@ build = "src/build.rs"
 swift-rs = { path = "../" }
 
 [build-dependencies]
-swift-rs = { path = "../" }
+swift-rs = { path = "../", features = ["build"] }

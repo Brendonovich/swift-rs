@@ -3,13 +3,11 @@ use std::{
     ops::Deref,
 };
 
-use serde::{Deserialize, Serialize};
+use crate::swift;
 
 use super::data::SRData;
-use crate::externs::allocate_string;
 
-#[derive(Debug)]
-#[repr(C)]
+#[repr(transparent)]
 pub struct SRString(SRData);
 
 impl Deref for SRString {
@@ -34,7 +32,7 @@ impl AsRef<[u8]> for SRString {
 
 impl From<&str> for SRString {
     fn from(string: &str) -> SRString {
-        unsafe { allocate_string(string.as_ptr(), string.len()) }
+        unsafe { swift::allocate_string(string.as_ptr(), string.len()) }
     }
 }
 
@@ -44,7 +42,8 @@ impl Display for SRString {
     }
 }
 
-impl Serialize for SRString {
+#[cfg(feature = "serde")]
+impl serde::Serialize for SRString {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -52,8 +51,8 @@ impl Serialize for SRString {
         serializer.serialize_str(self.as_str())
     }
 }
-
-impl<'a> Deserialize<'a> for SRString {
+#[cfg(feature = "serde")]
+impl<'a> serde::Deserialize<'a> for SRString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'a>,

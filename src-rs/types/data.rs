@@ -1,15 +1,11 @@
-use serde::{Serialize, Serializer};
-
 use super::{SRObject, array::SRArray};
 
 use std::ops::Deref;
 
-#[derive(Debug)]
-#[repr(C)]
+#[repr(transparent)]
 pub struct SRData(SRObject<SRDataImpl>);
 
-#[derive(Debug)]
-#[repr(C)]
+#[repr(transparent)]
 struct SRDataImpl(SRArray<u8>);
 
 impl Deref for SRData {
@@ -26,10 +22,11 @@ impl AsRef<[u8]> for SRData {
     }
 }
 
-impl Serialize for SRData {
+#[cfg(feature = "serde")]
+impl serde::Serialize for SRData {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer,
+        S: serde::Serializer,
     {
         serializer.serialize_bytes(self)
     }

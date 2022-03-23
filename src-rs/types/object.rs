@@ -1,12 +1,9 @@
-use std::ops::Deref;
+use crate::swift;
+use std::{ffi::c_void, ops::Deref, ptr::NonNull};
 
-use serde::{Deserialize, Serialize, Serializer};
+#[repr(transparent)]
+pub struct SRObject<T>(NonNull<SRObjectImpl<T>>);
 
-#[derive(Debug)]
-#[repr(C)]
-pub struct SRObject<T>(*const SRObjectImpl<T>);
-
-#[derive(Debug)]
 #[repr(C)]
 struct SRObjectImpl<T> {
     _nsobject_offset: u8,
@@ -17,17 +14,30 @@ impl<T> Deref for SRObject<T> {
     type Target = T;
 
     fn deref(&self) -> &T {
-        unsafe { &(*self.0).data }
+        unsafe { &self.0.as_ref().data }
     }
 }
 
-impl<T> Serialize for SRObject<T>
+impl<T> AsRef<T> for SRObject<T> {
+    fn as_ref(&self) -> &T {
+        &*self
+    }
+}
+
+impl<T> Drop for SRObject<T> {
+    fn drop(&mut self) {
+        unsafe { swift::release_object(self as *const _ as *const c_void) }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<T> serde::Serialize for SRObject<T>
 where
-    T: Serialize,
+    T: serde::Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer,
+        S: serde::Serializer,
     {
         self.deref().serialize(serializer)
     }

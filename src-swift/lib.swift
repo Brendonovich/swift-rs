@@ -1,19 +1,22 @@
 import Foundation
 
 public class SRArray<T>: NSObject {
+    // Used by Rust
     public var pointer: UnsafePointer<T>
     public var length: Int
     
+    // Actual array, deallocates objects inside automatically
+    var _array: [T]
+    
     public override init() {
-        self.pointer = UnsafePointer([]);
+        self._array = [];
+        self.pointer = UnsafePointer(self._array);
         self.length = 0;
     }
     
     public init(_ data: [T]) {
-        let mut_data = UnsafeMutablePointer<T>.allocate(capacity: data.count)
-        mut_data.initialize(from: data, count: data.count)
-        
-        self.pointer = UnsafePointer(mut_data)
+        self._array = data;
+        self.pointer = UnsafePointer(self._array)
         self.length = data.count
     }
 }
@@ -54,10 +57,6 @@ public class SRString: SRData {
     public func to_string() -> String {
         return String(bytes: self.to_data(), encoding: .utf8)!
     }
-    
-    deinit {
-        print("Deinit string \(self.to_string())")
-    }
 }
 
 @_cdecl("allocate_string")
@@ -66,4 +65,9 @@ public func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let string = String(bytes: buffer, encoding: .utf8)!
     let ret = SRString(string)
     return ret
+}
+
+@_cdecl("release_object")
+public func releaseObject(obj: UnsafePointer<AnyObject>) {
+    let _ = Unmanaged.passUnretained(obj.pointee).release();
 }

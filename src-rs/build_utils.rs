@@ -30,7 +30,10 @@ pub struct SwiftTarget {
 const MACOS_TARGET_VERSION: &str = "12";
 
 pub fn get_swift_target_info() -> SwiftTarget {
-    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let mut arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    if arch == "aarch64" {
+        arch = "arm64".into();
+    }
     let target = format!("{}-apple-macosx{}", arch, MACOS_TARGET_VERSION);
 
     let swift_target_info_str = Command::new("swift")

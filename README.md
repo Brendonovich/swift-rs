@@ -4,18 +4,28 @@ Call Swift functions from Rust with ease!
 
 ## Setup
 
-After adding `swift-rs` to your project's `Cargo.toml`, some setup work must be done.
+Add `swift-rs` to your project's `dependencies` and `build-dependencies`:
+
+```toml
+[dependencies]
+swift-rs = "0.3.0"
+
+[build-dependencies]
+swift-rs = { version = "0.3.0", features = "build" }
+```
+
+Next, some setup work must be done:
 
 1. Ensure your swift code is organized into a Swift Package. This can be done in XCode by selecting File -> New -> Project -> Multiplatform -> Swift Package and importing your existing code.
-2. Add SwiftRs as a dependency to your Swift package. A quick internet search can show you how to do this.
+2. Add `SwiftRs` as a dependency to your Swift package. A quick internet search can show you how to do this.
 3. Create a `build.rs` file in your project's source folder, if you don't have one already.
 4. Link the swift runtime to your binary
 
 ```rust
-use swift_rs::build_utils;
+use swift_rs::build;
 
 fn build() {
-    build_utils::link_swift();
+    build_utils::build();
 
     // Other build steps
 }
@@ -24,11 +34,11 @@ fn build() {
 4. Link your swift package to your binary. `link_swift_package` takes 2 arguments: The name of your package as specified in its `Package.swift`, and the location of your package's root folder relative to your rust project's root folder.
 
 ```rust
-use swift_rs::build_utils;
+use swift_rs::build;
 
 fn build() {
-    build_utils::link_swift();
-    build_utils::link_swift_package(PACKAGE_NAME, PACKAGE_PATH);
+    build::link_swift();
+    build::link_swift_package(PACKAGE_NAME, PACKAGE_PATH);
 
     // Other build steps
 }
@@ -40,9 +50,9 @@ With those steps completed, you should be ready to start using Swift code from R
 
 To allow calling a Swift function from Rust, it must follow some rules:
 
-1. It must be global and public
+1. It must be global
 2. It must be annotated with `@_cdecl`, so that it is callable from C
-3. It must only use types that can be represented in Objective-C, so only classes that derive NSObject, as well as primitives such as Int and Bool. This excludes strings, arrays, generics (though all of these can be sent with workarounds) and structs (which are strictly forbidden).
+3. It must only use types that can be represented in Objective-C, so only classes that derive `NSObject`, as well as primitives such as Int and Bool. This excludes strings, arrays, generics (though all of these can be sent with workarounds) and structs (which are strictly forbidden).
 
 For this example we will use a function that simply squares a number:
 
@@ -103,7 +113,7 @@ struct SquareNumberResult {
 }
 ```
 
-We are not allowed to do this, though, since structs cannot be represented in Objective-C. Instead, we must use a class that extends NSObject:
+We are not allowed to do this, though, since structs cannot be represented in Objective-C. Instead, we must use a class that extends `NSObject`:
 
 ```swift
 class SquareNumberResult: NSObject {
@@ -159,11 +169,35 @@ fn main() {
     let result = unsafe { square_number(input) };
 
     let result_input = result.input; // 4
-    let result_input = result.output; // 16
+    let result_output = result.output; // 16
 }
 ```
 
-Currently, creating objects in Rust and then passing them to Swift is not supported.
+Creating objects in Rust and then passing them to Swift is not supported.
+
+## Optionals
+
+`swift-rs` also supports Swift's `nil` type, but only for functions that return optional `NSObject`s. Functions returning optional primitives cannot be represented in Objective C, and thus are not supported.
+
+Let's say we have a function returning an optional `SRString`:
+
+```swift
+@_cdecl("optional_string")
+func optionalString(returnNil: Bool) -> SRString? {
+    if (returnNil) return nil
+    else return SRString("lorem ipsum")
+}
+```
+
+Thanks to Rust's [null pointer optimisation](https://doc.rust-lang.org/std/option/index.html#representation), the optional nature of `SRString?` can be represented by wrapping `SRString` in Rust's `Option<T>` type!
+
+```rust
+extern "C" {
+    fn optional_string(return_nil: bool) -> Option<SRString>
+}
+```
+
+Null pointers are actually the reason why a function that returns an optional primitives cannot be represented in C. If this were to be supported, how could a `nil` be differentiated from a number? It can't!
 
 ## Complex types
 
@@ -230,7 +264,7 @@ fn main() {
     // or though the Deref trait
     let value_str: &str = &*value_srstring;
 
-    // STString also implements Display
+    // SRString also implements Display
     println!("{}", value_ststring); // Will print "lorem ipsum" to the console
 }
 ```
@@ -381,11 +415,10 @@ Mutating values across Swift and Rust is not currently an aim for this library, 
 
 ## Why?
 
-I was helping my friend [Jamie Pine](https://twitter.com/jamiepine) with a desktop app made with [Tauri](https://twitter.com/TauriApps), an Electron alternative that uses Rust as its backend. One of the features Jamie wanted was to get the preview icon for files on his filesystem, which can be done with the [icon(forFile:)](https://developer.apple.com/documentation/appkit/nsworkspace/1528158-icon) function on the app's `NSWorkspace`. This requires accessing the static `shared` property of `NSWorkspace`, something that after some research wasn't possible using the [Rust Objective-C bindings](https://docs.rs/objc/0.2.7/objc/) (since from what I can tell it only supports sending and receiving messages, not accessing static properties), and I could figure out if [swift-bindgen](https://github.com/nvzqz/swift-bindgen) could do the job. So I created this library and the rest is history!
+I was helping my friend [Jamie Pine](https://twitter.com/jamiepine) with a desktop app made with [Tauri](https://twitter.com/TauriApps), an Electron alternative that uses Rust as its backend. One of the features Jamie wanted was to get the preview icon for files on his filesystem, which can be done with the [icon(forFile:)](https://developer.apple.com/documentation/appkit/nsworkspace/1528158-icon) function on the app's `NSWorkspace`. This requires accessing the static `shared` property of `NSWorkspace`, something that after some research wasn't possible using the [Rust Objective-C bindings](https://docs.rs/objc/0.2.7/objc/) (since from what I can tell it only supports sending and receiving messages, not accessing static properties), and I couldn't figure out if [swift-bindgen](https://github.com/nvzqz/swift-bindgen) could do the job. So I created this library and the rest is history!
 
-The examples folder is actually the same Swift code that Jamie uses in his project. While there's probably other, less unsafe ways to interop with Swift, its been both my and Jamie's experience that leveraging Swift for it's native API access and Rust for building applications is quite nice compared to wrangling Swift with calls from Rust similar to how the `objc` crate has you do. This library probably has a littany of problems around memory management and leaks since I'm not that well versed in the Swift runtime, but it gets the job done!
+The examples folder is similar to the same Swift code that Jamie uses in his project. While there's probably other, less unsafe ways to interop with Swift, its been both my and Jamie's experience that leveraging Swift for it's native API access and Rust for building applications is quite nice compared to wrangling Swift with calls from Rust similar to how the `objc` crate has you do. This library probably has a littany of problems around memory management and leaks since I'm not that well versed in the Swift runtime, but it gets the job done!
 
 ## Todo
 
-- Swift class deallocation from rust (implementing Drop and using deallocate\_{type} methods)
 - More ease of use and utility functions

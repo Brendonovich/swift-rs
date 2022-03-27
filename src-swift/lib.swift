@@ -2,27 +2,27 @@ import Foundation
 
 public class SRArray<T>: NSObject {
     // Used by Rust
-    public var pointer: UnsafePointer<T>
-    public var length: Int
+    let pointer: UnsafePointer<T>
+    let length: Int;
     
     // Actual array, deallocates objects inside automatically
-    var _array: [T]
-    
+    let array: [T];
+
     public override init() {
-        self._array = [];
-        self.pointer = UnsafePointer(self._array);
+        self.array = [];
+        self.pointer = UnsafePointer(self.array);
         self.length = 0;
     }
-    
+
     public init(_ data: [T]) {
-        self._array = data;
-        self.pointer = UnsafePointer(self._array)
+        self.array = data;
+        self.pointer = UnsafePointer(self.array)
         self.length = data.count
     }
 }
 
 public class SRObjectArray: NSObject {
-    var data: SRArray<NSObject>
+    let data: SRArray<NSObject>
     
     public init(_ data: [NSObject]) {
         self.data = SRArray(data)
@@ -30,18 +30,14 @@ public class SRObjectArray: NSObject {
 }
 
 public class SRData: NSObject {
-    public var data: SRArray<UInt8>
+    let data: SRArray<UInt8>
     
     public override init() {
-        self.data = SRArray<UInt8>.init()
+        self.data = SRArray()
     }
     
     public init(_ data: [UInt8]) {
         self.data = SRArray(data)
-    }
-    
-    public func to_data() -> Data {
-        return Data(bytes: self.data.pointer, count: self.data.length)
     }
 }
 
@@ -55,12 +51,12 @@ public class SRString: SRData {
     }
 
     public func to_string() -> String {
-        return String(bytes: self.to_data(), encoding: .utf8)!
+        return String(bytes: self.data.array, encoding: .utf8)!
     }
 }
 
 @_cdecl("allocate_string")
-public func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
+func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let buffer = UnsafeBufferPointer(start: data, count: size)
     let string = String(bytes: buffer, encoding: .utf8)!
     let ret = SRString(string)
@@ -68,6 +64,6 @@ public func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
 }
 
 @_cdecl("release_object")
-public func releaseObject(obj: UnsafePointer<AnyObject>) {
+func releaseObject(obj: UnsafePointer<AnyObject>) {
     let _ = Unmanaged.passUnretained(obj.pointee).release();
 }

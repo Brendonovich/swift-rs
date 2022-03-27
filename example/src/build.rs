@@ -1,6 +1,6 @@
-use swift_rs::build_utils;
+use swift_rs::build;
 
 fn main() {
-    build_utils::link_swift();
-    build_utils::link_swift_package("swift-lib", "./swift-lib/");
+    build::link_swift();
+    build::link_swift_package("swift-lib", "./swift-lib/");
 }

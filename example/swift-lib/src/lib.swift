@@ -2,7 +2,7 @@ import SwiftRs
 import AppKit
 
 @_cdecl("get_file_thumbnail_base64")
-public func getFileThumbnailBase64(path: SRString) -> SRString {
+func getFileThumbnailBase64(path: SRString) -> SRString {
     let path = path.to_string();
     
     let image = NSWorkspace.shared.icon(forFile: path)
@@ -11,7 +11,7 @@ public func getFileThumbnailBase64(path: SRString) -> SRString {
     return SRString(bitmap.base64EncodedString())
 }
 
-public class Volume: NSObject {
+class Volume: NSObject {
     var name: SRString
     var path: SRString
     var total_capacity: Int
@@ -32,7 +32,7 @@ public class Volume: NSObject {
 }
 
 @_cdecl("get_mounts")
-public func getMounts() -> SRObjectArray {
+func getMounts() -> SRObjectArray {
     let keys: [URLResourceKey] = [
         .volumeNameKey,
         .volumeIsRemovableKey,
@@ -42,7 +42,7 @@ public func getMounts() -> SRObjectArray {
         .volumeIsRootFileSystemKey,
     ]
     
-    var paths = autoreleasepool {
+    let paths = autoreleasepool {
         FileManager().mountedVolumeURLs(includingResourceValuesForKeys: keys, options: [])
     }
     
@@ -77,8 +77,8 @@ public func getMounts() -> SRObjectArray {
     return SRObjectArray(validMounts)
 }
 
-public class Test: NSObject {
-    public var null: Bool
+class Test: NSObject {
+    var null: Bool
     
     public init(_ null: Bool)
     {
@@ -87,7 +87,7 @@ public class Test: NSObject {
 }
 
 @_cdecl("return_nullable")
-public func returnNullable(null: Bool) -> Test? {
+func returnNullable(null: Bool) -> Test? {
     if (null == true) { return nil }
     
     return Test(null)

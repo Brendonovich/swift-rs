@@ -25,13 +25,13 @@ Next, some setup work must be done:
 use swift_rs::build;
 
 fn build() {
-    build_utils::build();
+    build::link_swift();
 
     // Other build steps
 }
 ```
 
-4. Link your swift package to your binary. `link_swift_package` takes 2 arguments: The name of your package as specified in its `Package.swift`, and the location of your package's root folder relative to your rust project's root folder.
+5. Link your swift package to your binary. `link_swift_package` takes 2 arguments: The name of your package as specified in its `Package.swift`, and the location of your package's root folder relative to your rust project's root folder.
 
 ```rust
 use swift_rs::build;

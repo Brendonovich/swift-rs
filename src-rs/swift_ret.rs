@@ -1,32 +1,58 @@
-use crate::{SRObject, SRString, SRData};
+use crate::{SRArray, SRData, SRObject, SRString};
 
 pub unsafe trait SwiftRet {
-    type SwiftType;
+    type SwiftType: SwiftRet;
 
-    fn retain(v: &Self::SwiftType);
+    fn __retain(v: &Self::SwiftType);
 }
 
 unsafe impl SwiftRet for SRString {
     type SwiftType = SRString;
 
-    fn retain(v: &Self::SwiftType) {
-        v.retain();
+    fn __retain(v: &Self::SwiftType) {
+        v.__retain();
     }
 }
 
 unsafe impl SwiftRet for String {
     type SwiftType = SRString;
 
-    fn retain(v: &Self::SwiftType) {
-        v.retain()
+    fn __retain(v: &Self::SwiftType) {
+        v.__retain();
     }
 }
 
 unsafe impl SwiftRet for SRData {
     type SwiftType = SRData;
 
-    fn retain(v: &Self::SwiftType) {
-        v.retain()
+    fn __retain(v: &Self::SwiftType) {
+        v.__retain();
+    }
+}
+
+unsafe impl<T: SwiftRet> SwiftRet for SRObject<T> {
+    type SwiftType = SRObject<T::SwiftType>;
+
+    fn __retain(v: &Self::SwiftType) {
+        v.__retain();
+    }
+}
+
+unsafe impl<T: SwiftRet> SwiftRet for Option<T> {
+    type SwiftType = Option<T::SwiftType>;
+
+    fn __retain(v: &Self::SwiftType) {
+        if let Some(v) = v {
+            T::__retain(v);
+        }
+    }
+}
+
+unsafe impl<T: SwiftRet> SwiftRet for SRArray<T> {
+    type SwiftType = SRArray<T::SwiftType>;
+
+    fn __retain(v: &Self::SwiftType) {
+        v.__retain();
     }
 }
 
@@ -35,7 +61,7 @@ macro_rules! impl_primitive {
         unsafe impl SwiftRet for $t {
             type SwiftType = $t;
 
-            fn retain(_: &Self::SwiftType) {}
+            fn __retain(_: &Self::SwiftType) {}
         }
     };
 }

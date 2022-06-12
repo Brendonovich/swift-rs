@@ -3,12 +3,12 @@ use std::{
     ops::Deref,
 };
 
-use crate::swift;
+use crate::{swift_fn, Int};
 
 use super::data::SRData;
 
 #[repr(transparent)]
-pub struct SRString(SRData);
+pub struct SRString(pub(crate) SRData);
 
 impl Deref for SRString {
     type Target = str;
@@ -24,8 +24,11 @@ impl SRString {
         unsafe { std::str::from_utf8_unchecked(&*self.0) }
     }
     #[inline]
-    pub(crate) fn retain(&self) {
-        self.0.retain();
+    pub(crate) fn __retain(&self) {
+        self.0.__retain();
+    }
+    pub fn release(&self) {
+        self.0.release()
     }
 }
 
@@ -35,9 +38,11 @@ impl AsRef<[u8]> for SRString {
     }
 }
 
+swift_fn!(allocate_string(data: *const u8, size: Int) -> String);
+
 impl From<&str> for SRString {
     fn from(string: &str) -> SRString {
-        unsafe { swift::allocate_string(string.as_ptr(), string.len()) }
+        allocate_string(string.as_ptr(), string.len() as Int)
     }
 }
 

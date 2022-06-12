@@ -2,10 +2,10 @@ import SwiftRs
 import AppKit
 
 @_cdecl("get_file_thumbnail_base64")
-func getFileThumbnailBase64() -> SRString {
-    // let path = path.to_string();
+func getFileThumbnailBase64(path: SRString) -> SRString {
+    let path = path.to_string();
     
-    let image = NSWorkspace.shared.icon(forFile: "/Users")
+    let image = NSWorkspace.shared.icon(forFile: path)
     let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!.representation(using: .png, properties: [:])!
     
     return SRString(bitmap.base64EncodedString())
@@ -79,10 +79,12 @@ func getMounts() -> SRObjectArray {
 
 class Test: NSObject {
     var null: Bool
+    var num: Int
     
     public init(_ null: Bool)
     {
         self.null = null;
+        self.num = 20309;
     }
 }
 
@@ -90,5 +92,7 @@ class Test: NSObject {
 func returnNullable(null: Bool) -> Test? {
     if (null == true) { return nil }
     
-    return Test(null)
+    let test = Test(null);
+    
+    return test
 }

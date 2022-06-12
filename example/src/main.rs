@@ -1,42 +1,45 @@
-use swift_rs::{swift_fn, SRArray, SRObject, SRObjectArray, SRString};
+use swift_rs::*;
 
-#[repr(C)]
-// #[swift_object]
+#[swift_object]
 struct Volume {
     pub name: SRString,
     path: SRString,
-    total_capacity: usize,
-    available_capacity: usize,
-    is_removable: bool,
-    is_ejectable: bool,
-    is_root_filesystem: bool,
+    total_capacity: Int,
+    available_capacity: Int,
+    is_removable: Bool,
+    is_ejectable: Bool,
+    is_root_filesystem: Bool,
 }
 
-#[repr(C)]
+#[derive(Debug)]
+#[swift_object]
 struct Test {
-    pub null: bool,
+    pub null: Bool,
+    pub num: Int,
 }
 
-// extern "C" {
-//     fn get_file_thumbnail_base64(path: SRString) -> SRString;
-//     fn get_mounts() -> SRObjectArray<Volume>;
-//     fn return_nullable(null: bool) -> Option<SRObject<Test>>;
-// }
-
-swift_fn!(get_file_thumbnail_base64() -> SRString);
+swift_fn!(get_file_thumbnail_base64(path: &str) -> String);
+swift_fn!(return_nullable(null: Bool) -> Option<Test>);
+swift_fn!(get_mounts() -> SRTypedArray<Volume>);
 
 fn main() {
     let path = "/Users";
-    let thumbnail = get_file_thumbnail_base64();
-    std::fs::write("icon.txt", &thumbnail).unwrap();
+    let thumbnail = get_file_thumbnail_base64(path);
+    std::fs::write("icon.txt", thumbnail.as_str()).unwrap();
     println!("Wrote folder icon base64 to icon.txt");
 
-    // let mounts = unsafe { get_mounts() };
-    // println!("First Volume Name: {}", mounts[0].name);
+    let mounts = get_mounts();
+    println!("First Volume Name: {}", mounts[0].name);
 
-    // let opt = unsafe { return_nullable(true) };
-    // println!("function returned nil: {}", opt.is_none());
+    let opt = return_nullable(true);
+    println!(
+        "function returned data: {:?}",
+        opt.as_ref().map(|o| o.as_ref())
+    );
 
-    // let opt = unsafe { return_nullable(false) };
-    // println!("function returned data: {}", opt.is_some());
+    let opt = return_nullable(false);
+    println!(
+        "function returned data: {:?}",
+        opt.as_ref().map(|o| o.as_ref())
+    );
 }

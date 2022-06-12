@@ -1,16 +1,21 @@
-use super::{array::SRArray, SRObject};
+use crate::SRArray;
+
+use super::SRObject;
 
 use std::ops::Deref;
 
 #[repr(transparent)]
-pub struct SRData(SRObject<SRDataImpl>);
+pub struct SRData(pub(crate) SRObject<SRDataImpl>);
 
 #[repr(transparent)]
-struct SRDataImpl(SRArray<u8>);
+pub(crate) struct SRDataImpl(SRArray<u8>);
 
 impl SRData {
-    pub(crate) fn retain(&self) {
-        self.0.retain();
+    pub(crate) fn __retain(&self) {
+        self.0.__retain();
+    }
+    pub fn release(&self) {
+        self.0.release();
     }
 }
 

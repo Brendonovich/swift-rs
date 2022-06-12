@@ -16,8 +16,8 @@ public class SRArray<T>: NSObject {
 
     public init(_ data: [T]) {
         self.array = data;
-        self.pointer = UnsafePointer(self.array)
-        self.length = data.count
+        self.pointer = UnsafePointer(self.array);
+        self.length = data.count;
     }
 }
 
@@ -61,14 +61,4 @@ func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let string = String(bytes: buffer, encoding: .utf8)!
     let ret = SRString(string)
     return ret
-}
-
-@_cdecl("retain_object")
-func retainObject(obj: UnsafePointer<AnyObject>) {
-    let _ =  Unmanaged.passUnretained(obj.pointee).retain();
-}
-
-@_cdecl("release_object")
-func releaseObject(obj: UnsafePointer<AnyObject>) {
-    let _ =  Unmanaged.passUnretained(obj.pointee).release();
 }

@@ -1,0 +1,14 @@
+[package]
+name = "swift-rs-macros"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc_macro = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+proc-macro2 = "1.0.39"
+quote = "1.0.18"
+syn = {version = "1.0.96", features = ["full"]}

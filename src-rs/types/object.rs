@@ -1,4 +1,4 @@
-use crate::swift;
+use crate::objc;
 use std::{ffi::c_void, ops::Deref, ptr::NonNull};
 
 #[repr(transparent)]
@@ -11,10 +11,11 @@ pub(crate) struct SRObjectImpl<T> {
 }
 
 impl<T> SRObject<T> {
-    pub(crate) fn retain(&self) {
-        unsafe {
-            swift::objc_retainAutoreleaseReturnValue(&*self.0.as_ref() as *const _ as *const c_void)
-        };
+    pub fn __retain(&self) {
+        unsafe { objc::objc_retain(&*self.0.as_ref() as *const _ as *const c_void) };
+    }
+    pub fn release(&self) {
+        unsafe { objc::objc_release(&*self.0.as_ref() as *const _ as *const c_void) };
     }
 }
 
@@ -34,7 +35,7 @@ impl<T> AsRef<T> for SRObject<T> {
 
 impl<T> Drop for SRObject<T> {
     fn drop(&mut self) {
-        unsafe { swift::release_object(self as *const _ as *const c_void) }
+        unsafe { objc::objc_release(&*self.0.as_ref() as *const _ as *const c_void) }
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::{SRObject, SRString};
+use crate::{SRObject, SRString, SRData};
 
 pub unsafe trait SwiftRet {
     type SwiftType;
@@ -16,6 +16,14 @@ unsafe impl SwiftRet for SRString {
 
 unsafe impl SwiftRet for String {
     type SwiftType = SRString;
+
+    fn retain(v: &Self::SwiftType) {
+        v.retain()
+    }
+}
+
+unsafe impl SwiftRet for SRData {
+    type SwiftType = SRData;
 
     fn retain(v: &Self::SwiftType) {
         v.retain()

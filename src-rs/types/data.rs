@@ -1,4 +1,4 @@
-use super::{SRObject, array::SRArray};
+use super::{array::SRArray, SRObject};
 
 use std::ops::Deref;
 
@@ -8,11 +8,17 @@ pub struct SRData(SRObject<SRDataImpl>);
 #[repr(transparent)]
 struct SRDataImpl(SRArray<u8>);
 
+impl SRData {
+    pub(crate) fn retain(&self) {
+        self.0.retain();
+    }
+}
+
 impl Deref for SRData {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
-        &*self.0.0
+        &*self.0.deref().0
     }
 }
 

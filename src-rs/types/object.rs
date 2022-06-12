@@ -2,12 +2,20 @@ use crate::swift;
 use std::{ffi::c_void, ops::Deref, ptr::NonNull};
 
 #[repr(transparent)]
-pub struct SRObject<T>(NonNull<SRObjectImpl<T>>);
+pub struct SRObject<T>(pub(crate) NonNull<SRObjectImpl<T>>);
 
 #[repr(C)]
-struct SRObjectImpl<T> {
+pub(crate) struct SRObjectImpl<T> {
     _nsobject_offset: u8,
     data: T,
+}
+
+impl<T> SRObject<T> {
+    pub(crate) fn retain(&self) {
+        unsafe {
+            swift::objc_retainAutoreleaseReturnValue(&*self.0.as_ref() as *const _ as *const c_void)
+        };
+    }
 }
 
 impl<T> Deref for SRObject<T> {

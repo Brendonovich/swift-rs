@@ -2,10 +2,10 @@ import SwiftRs
 import AppKit
 
 @_cdecl("get_file_thumbnail_base64")
-func getFileThumbnailBase64(path: SRString) -> SRString {
-    let path = path.to_string();
+func getFileThumbnailBase64() -> SRString {
+    // let path = path.to_string();
     
-    let image = NSWorkspace.shared.icon(forFile: path)
+    let image = NSWorkspace.shared.icon(forFile: "/Users")
     let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!.representation(using: .png, properties: [:])!
     
     return SRString(bitmap.base64EncodedString())

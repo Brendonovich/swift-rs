@@ -63,7 +63,12 @@ func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     return ret
 }
 
+@_cdecl("retain_object")
+func retainObject(obj: UnsafePointer<AnyObject>) {
+    let _ =  Unmanaged.passUnretained(obj.pointee).retain();
+}
+
 @_cdecl("release_object")
 func releaseObject(obj: UnsafePointer<AnyObject>) {
-    let _ = Unmanaged.passUnretained(obj.pointee).release();
+    let _ =  Unmanaged.passUnretained(obj.pointee).release();
 }

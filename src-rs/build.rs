@@ -1,4 +1,4 @@
-use std::{env, process::Command};
+use std::{env, path::Path, process::Command};
 
 use serde::Deserialize;
 
@@ -75,9 +75,12 @@ pub fn link_swift_package(package_name: &str, package_root: &str) {
 
     let swift_target_info = get_swift_target_info();
 
-    println!(
-        "cargo:rustc-link-search=native={}.build/{}/{}",
-        package_root, swift_target_info.target.unversioned_triple, profile
-    );
+    let search_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join(package_root)
+        .join(".build")
+        .join(swift_target_info.target.unversioned_triple)
+        .join(profile);
+
+    println!("cargo:rustc-link-search=native={}", search_path.display());
     println!("cargo:rustc-link-lib=static={}", package_name);
 }

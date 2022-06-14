@@ -5,8 +5,11 @@ description = "Call Swift from Rust with ease!"
 authors = ["you"]
 license = "MIT"
 repository = "https://github.com/Brendonovich/swift-rs"
-edition = "2018"
+edition = "2021"
 exclude=["/src-swift", "*.swift"]
+
+[workspace]
+members = ["example"]
 
 [lib]
 path = "src-rs/lib.rs"

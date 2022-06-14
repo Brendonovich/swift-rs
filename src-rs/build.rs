@@ -62,10 +62,13 @@ pub fn link_swift() {
 
 pub fn link_swift_package(package_name: &str, package_root: &str) {
     let profile = env::var("PROFILE").unwrap();
+    
+    let package_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join(package_root);
 
     if !Command::new("swift")
         .args(&["build", "-c", &profile])
-        .current_dir(package_root)
+        .current_dir(&package_path)
         .status()
         .unwrap()
         .success()
@@ -75,8 +78,7 @@ pub fn link_swift_package(package_name: &str, package_root: &str) {
 
     let swift_target_info = get_swift_target_info();
 
-    let search_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-        .join(package_root)
+    let search_path = package_path
         .join(".build")
         .join(swift_target_info.target.unversioned_triple)
         .join(profile);

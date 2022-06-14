@@ -118,3 +118,29 @@ unsafe impl<T: SwiftArg> SwiftArg for *mut T {
         *rs_type
     }
 }
+
+unsafe impl SwiftArg for *const c_void {
+    type SwiftRsType = *const c_void;
+    type SwiftType = *const c_void;
+    
+    fn to_swift_rs_type(self) -> Self::SwiftRsType {
+        self
+    }
+    
+    fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
+        *rs_type
+    }
+}
+
+unsafe impl SwiftArg for *mut c_void {
+    type SwiftRsType = *mut c_void;
+    type SwiftType = *mut c_void;
+    
+    fn to_swift_rs_type(self) -> Self::SwiftRsType {
+        self
+    }
+    
+    fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
+        *rs_type
+    }
+}

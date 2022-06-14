@@ -50,7 +50,7 @@ unsafe impl SwiftArg for SRString {
     }
 
     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
-        rs_type.0.0.0.as_ptr() as *const _ as *const c_void
+        rs_type.0 .0 .0.as_ptr() as *const _ as *const c_void
     }
 }
 
@@ -63,7 +63,7 @@ unsafe impl SwiftArg for SRData {
     }
 
     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
-        rs_type.0.0.as_ptr() as *const c_void
+        rs_type.0 .0.as_ptr() as *const c_void
     }
 }
 
@@ -122,11 +122,11 @@ unsafe impl<T: SwiftArg> SwiftArg for *mut T {
 unsafe impl SwiftArg for *const c_void {
     type SwiftRsType = *const c_void;
     type SwiftType = *const c_void;
-    
+
     fn to_swift_rs_type(self) -> Self::SwiftRsType {
         self
     }
-    
+
     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
         *rs_type
     }
@@ -135,11 +135,11 @@ unsafe impl SwiftArg for *const c_void {
 unsafe impl SwiftArg for *mut c_void {
     type SwiftRsType = *mut c_void;
     type SwiftType = *mut c_void;
-    
+
     fn to_swift_rs_type(self) -> Self::SwiftRsType {
         self
     }
-    
+
     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
         *rs_type
     }

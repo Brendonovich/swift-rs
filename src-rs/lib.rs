@@ -20,7 +20,7 @@ macro_rules! swift_fn {
                 fn $name($($arg: <$t as $crate::SwiftArg>::SwiftType),*);
             }
 
-            $(let $arg = $crate::SwiftArg::to_swift_type($arg);)*
+            $(let $arg = $crate::SwiftArg::to_swift_rs_type($arg);)*
 
             unsafe {
                 $name($($arg),*);

@@ -214,8 +214,8 @@ import SwiftRs
 
 @_cdecl("swift_print")
 public func swiftPrint(value: SRString) {
-    // toString() converts the SRString to a Swift String
-    print(value.toString())
+    // to_string() converts the SRString to a Swift String
+    print(value.to_string())
 }
 ```
 

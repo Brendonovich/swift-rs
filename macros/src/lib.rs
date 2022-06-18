@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, AttributeArgs, Item, ItemFn, ItemStruct};
+use syn::{parse_macro_input, AttributeArgs, Item, ItemStruct};
 
 #[proc_macro_attribute]
 pub fn swift_object(args: TokenStream, input: TokenStream) -> TokenStream {

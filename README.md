@@ -41,7 +41,7 @@ fn build() {
 use swift_rs::build;
 
 fn build() {
-    build::link_swift();
+    build::link_swift("10.15" /* macOS Catalina */); // Ensure the same minimum supported macOS version is specified as in your `Package.swift` file.
     build::link_swift_package(PACKAGE_NAME, PACKAGE_PATH);
 
     // Other build steps
@@ -49,6 +49,22 @@ fn build() {
 ```
 
 With those steps completed, you should be ready to start using Swift code from Rust!
+
+### macOS minimum system version
+
+When using `swift-rs` you may to want to use Swift API's which are only available from a certain macOS versions. You can set the minimum version of macOS you intend to support in the `Package.swift` file of your Swift project. `swift-rs` supports `10.10` (OS X Yosemite) and later.
+
+```swift
+let package = Package(
+    // ...
+    platforms: [
+        .macOS(.v10_15 /* macOS Catalina */), // This specifies the earliest version of macOS that is supported.
+    ],
+    // ...
+)
+```
+
+If you experience the error `dyld[16008]: Library not loaded: @rpath/libswiftCore.dylib` when using `swift-rs` with [Tauri](https://tauri.app) ensure you have set your [Tauri minimum system version](https://tauri.app/v1/guides/distribution/macos/#minimum-system-version) to `10.15` or higher in your `tauri.config.json`. 
 
 ## Calling basic functions
 

@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "swift-lib",
     platforms: [
-        .macOS(.v11),
+        .macOS(.v10_15), // macOS Catalina. Earliest version that is officially supported by Apple.
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.

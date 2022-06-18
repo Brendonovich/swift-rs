@@ -1,5 +1,7 @@
 use std::{ops::Deref, ptr::NonNull};
 
+use crate::{Int, UInt};
+
 use super::SRObject;
 
 // SRArray is wrapped in SRObject since the

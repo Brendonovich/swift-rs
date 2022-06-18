@@ -27,14 +27,12 @@ pub struct SwiftTarget {
     pub paths: SwiftPaths,
 }
 
-const MACOS_TARGET_VERSION: &str = "12";
-
-pub fn get_swift_target_info() -> SwiftTarget {
+pub fn get_swift_target_info(minimum_mac_os_version: &'static str) -> SwiftTarget {
     let mut arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     if arch == "aarch64" {
         arch = "arm64".into();
     }
-    let target = format!("{}-apple-macosx{}", arch, MACOS_TARGET_VERSION);
+    let target = format!("{}-apple-macosx{}", arch, minimum_mac_os_version);
 
     let swift_target_info_str = Command::new("swift")
         .args(&["-target", &target, "-print-target-info"])
@@ -45,11 +43,8 @@ pub fn get_swift_target_info() -> SwiftTarget {
     serde_json::from_slice(&swift_target_info_str).unwrap()
 }
 
-pub fn link_swift() {
-    let swift_target_info = get_swift_target_info();
-    if swift_target_info.target.libraries_require_rpath {
-        panic!("Libraries require RPath! Change minimum MacOS value to fix.")
-    }
+pub fn link_swift(minimum_mac_os_version: &'static str) {
+    let swift_target_info = get_swift_target_info(minimum_mac_os_version);
 
     swift_target_info
         .paths
@@ -62,6 +57,7 @@ pub fn link_swift() {
 
 pub fn link_swift_package(package_name: &str, package_root: &str) {
     let profile = env::var("PROFILE").unwrap();
+    let package_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join(package_root);
 
     if !Command::new("swift")
         .args(&["build", "-c", &profile])
@@ -73,11 +69,14 @@ pub fn link_swift_package(package_name: &str, package_root: &str) {
         panic!("Failed to compile swift package {}", package_name);
     }
 
-    let swift_target_info = get_swift_target_info();
-
-    let lib_dir = PathBuf::from(package_root)
+    let mut arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    if arch == "aarch64" {
+        arch = "arm64".into();
+    }
+    let unversioned_triple = format!("{}-apple-macosx", arch);
+    let search_path = package_path
         .join(".build")
-        .join(swift_target_info.target.unversioned_triple)
+        .join(unversioned_triple)
         .join(profile);
     println!(
         "cargo:rustc-link-search=native={}",

@@ -1,6 +1,6 @@
 use std::{ops::Deref, ptr::NonNull};
 
-use crate::{Int, UInt, SwiftRet};
+use crate::{Int, UInt};
 
 use super::SRObject;
 

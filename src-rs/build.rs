@@ -8,7 +8,7 @@ pub struct SwiftTargetInfo {
     pub triple: String,
     pub unversioned_triple: String,
     pub module_triple: String,
-    pub swift_runtime_compatibility_version: String,
+    //pub swift_runtime_compatibility_version: String,
     #[serde(rename = "librariesRequireRPath")]
     pub libraries_require_rpath: bool,
 }
@@ -76,8 +76,8 @@ pub fn link_swift_package(package_name: &str, package_root: &str) {
     let swift_target_info = get_swift_target_info();
 
     println!(
-        "cargo:rustc-link-search=native={}.build/{}/{}",
+        "cargo:rustc-link-searchx={}.build/{}/{}",
         package_root, swift_target_info.target.unversioned_triple, profile
     );
-    println!("cargo:rustc-link-lib=static={}", package_name);
+    println!("cargo:rustc-link-lib={}", package_name);
 }

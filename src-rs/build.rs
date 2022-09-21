@@ -76,8 +76,8 @@ pub fn link_swift_package(package_name: &str, package_root: &str) {
     let swift_target_info = get_swift_target_info();
 
     println!(
-        "cargo:rustc-link-search=static={}.build/{}/{}",
+        "cargo:rustc-link-search=native={}.build/{}/{}",
         package_root, swift_target_info.target.unversioned_triple, profile
     );
-    println!("cargo:rustc-link-lib={}", package_name);
+    println!("cargo:rustc-link-lib=static={}", package_name);
 }

@@ -8,7 +8,7 @@ pub struct SwiftTargetInfo {
     pub triple: String,
     pub unversioned_triple: String,
     pub module_triple: String,
-    pub swift_runtime_compatibility_version: String,
+    //pub swift_runtime_compatibility_version: String,
     #[serde(rename = "librariesRequireRPath")]
     pub libraries_require_rpath: bool,
 }

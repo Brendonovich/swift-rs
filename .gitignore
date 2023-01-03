@@ -4,3 +4,4 @@ target/
 .idea/
 .DS_Store
 icon.txt
+**/Cargo.lock

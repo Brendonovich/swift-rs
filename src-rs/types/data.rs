@@ -1,4 +1,4 @@
-use super::{SRObject, array::SRArray};
+use super::{array::SRArray, SRObject};
 
 use std::ops::Deref;
 
@@ -12,13 +12,13 @@ impl Deref for SRData {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
-        &*self.0.0
+        &self.0 .0
     }
 }
 
 impl AsRef<[u8]> for SRData {
     fn as_ref(&self) -> &[u8] {
-        &*self
+        self
     }
 }
 

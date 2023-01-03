@@ -1,4 +1,4 @@
-use swift_rs::{SRArray, SRObject, SRObjectArray, SRString};
+use swift_rs::{SRObject, SRObjectArray, SRString};
 
 #[repr(C)]
 struct Volume {

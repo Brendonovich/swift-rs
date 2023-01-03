@@ -20,7 +20,7 @@ impl Deref for SRString {
 
 impl SRString {
     pub fn as_str(&self) -> &str {
-        unsafe { std::str::from_utf8_unchecked(&*self.0) }
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
 

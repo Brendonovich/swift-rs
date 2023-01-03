@@ -20,7 +20,7 @@ impl<T> Deref for SRObject<T> {
 
 impl<T> AsRef<T> for SRObject<T> {
     fn as_ref(&self) -> &T {
-        &*self
+        self
     }
 }
 

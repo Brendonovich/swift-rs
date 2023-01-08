@@ -6,13 +6,11 @@
 mod build;
 
 fn main() {
-    println!("cargo:rerun-if-env-changed={}", TEST_ENV);
+    println!("cargo:rerun-if-env-changed=TEST_SWIFT_RS");
 
     #[cfg(feature = "build")]
-    if std::env::var(TEST_ENV).unwrap_or("false".into()) == "true" {
+    if std::env::var("TEST_SWIFT_RS").unwrap_or("false".into()) == "true" {
         build::link_swift();
         build::link_swift_package("test-swift", "tests/swift-pkg")
     }
 }
-
-const TEST_ENV: &str = "TEST_SWIFT_RS";

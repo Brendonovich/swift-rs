@@ -1,6 +1,6 @@
 import SwiftRs
 
 @_cdecl("get_greeting")
-func getGreeting(name: SRString) -> SRString {
-    return SRString("Hello \(name)")
+func getGreeting(name: UnsafePointer<SRString>) -> SRString {
+    return toRust(SRString("Hello \(name.pointee.to_string())"))
 }

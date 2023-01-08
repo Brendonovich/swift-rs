@@ -133,13 +133,13 @@ class SquareNumberResult: NSObject {
 
 <sub><sup>Yes, this class could contain the squaring logic too, but that is irrelevant for this example
 
-An instance of this class can then be returned from `squareNumber`:
+An instance of this class can then be returned from `squareNumber` (remember to wrap it up under `toRust()`):
 
 ```swift
 @_cdecl("square_number")
 public func squareNumber(input: Int) -> SquareNumberResult {
     let output = input * input
-    return SquareNumberResult(input, output)
+    return toRust(SquareNumberResult(input, output))
 }
 ```
 
@@ -217,9 +217,10 @@ Strings can be passed between Rust and Swift through `SRString`, which can be cr
 import SwiftRs
 
 @_cdecl("swift_print")
-public func swiftPrint(value: SRString) {
-    // to_string() converts the SRString to a Swift String
-    print(value.to_string())
+public func swiftPrint(value: UnsafePointer<SRString>) {
+    // value.pointee gives us the actual SRString instance,
+    // and .to_string() converts the SRString to a Swift String
+    print(value.pointee.to_string())
 }
 ```
 
@@ -227,7 +228,7 @@ public func swiftPrint(value: SRString) {
 use swift_rs::types::SRString;
 
 extern "C" {
-    fn swift_print(value: SRString);
+    fn swift_print(value: &SRString);
 }
 
 fn main() {
@@ -235,7 +236,7 @@ fn main() {
     // This will allocate memory in Swift and copy the string
     let value: SRString = "lorem ipsum".into();
 
-    unsafe { swift_print(value) }; // Will print "lorem ipsum" to the console
+    unsafe { swift_print(&value) }; // Will print "lorem ipsum" to the console
 }
 ```
 
@@ -249,7 +250,8 @@ public func getString() -> SRString {
     let value = "lorem ipsum"
 
     // SRString can be created from a regular String
-    return SRString(value)
+    // Again, remember to wrap up the return value under toRust()
+    return toRust(SRString(value))
 }
 ```
 
@@ -296,7 +298,7 @@ class IntArray: NSObject {
 public func getNumbers() -> IntArray {
     let numbers = [1, 2, 3, 4]
 
-    return IntArray(numbers)
+    return toRust(IntArray(numbers))
 }
 ```
 
@@ -374,7 +376,7 @@ public func getTuples() -> SRObjectArray {
     ]
 
     // Type safety is only lost when the Swift array is converted to an SRObjectArray
-    return SRObjectArray(tupleArray)
+    return toRust(SRObjectArray(tupleArray))
 }
 ```
 

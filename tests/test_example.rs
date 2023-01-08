@@ -6,6 +6,7 @@ use std::{
 
 /// This test tries building the code in example/ directory
 #[test]
+#[ignore]
 #[serial]
 fn test_build() {
     let status = Command::new("cargo")
@@ -21,6 +22,7 @@ fn test_build() {
 /// This test tries building the code in example/ directory, but after modifying
 /// the `package_root` in `link_swift_package()` call to not have a trailing slash.
 #[test]
+#[ignore]
 #[serial]
 fn test_link_swift_pkg_without_trailing_slash() {
     // modify build.rs of example
@@ -48,6 +50,7 @@ fn test_link_swift_pkg_without_trailing_slash() {
 ///
 /// TODO:this should be replaced with better & more structured tests
 #[test]
+#[ignore]
 #[serial]
 fn test_run() {
     let status = Command::new("cargo")

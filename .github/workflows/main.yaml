@@ -27,7 +27,7 @@ jobs:
       - name: Compile
         run: cargo +${{ matrix.rust }} build
       - name: Test example
-        run: cargo +${{ matrix.rust }} test --locked --verbose --test test_example
+        run: cargo +${{ matrix.rust }} test --locked --verbose --test test_example -- --ignored
       - name: Cleanup after default build
         run: cargo +${{ matrix.rust }} clean
       - name: Compile with build enabled
@@ -35,7 +35,7 @@ jobs:
       - name: Run Tests
         env:
           TEST_SWIFT_RS: "true"
-        run: cargo +${{ matrix.rust }} test --features build --locked --verbose -- --skip test_example
+        run: cargo +${{ matrix.rust }} test --features build --locked --verbose
       - name: Check Code Formatting
         if: ${{ matrix.rust == 'stable' || matrix.rust == 'beta' }}
         run: cargo +${{ matrix.rust }} fmt --all -- --check

@@ -1,4 +1,4 @@
-use crate::{SRArray, SRData, SRObject, SRString};
+use crate::*;
 
 pub unsafe trait SwiftRet {
     type SwiftType: SwiftRet;
@@ -66,16 +66,16 @@ macro_rules! impl_primitive {
     };
 }
 
-impl_primitive!(bool);
-impl_primitive!(isize);
-impl_primitive!(i8);
-impl_primitive!(i16);
-impl_primitive!(i32);
-impl_primitive!(i64);
-impl_primitive!(usize);
-impl_primitive!(u8);
-impl_primitive!(u16);
-impl_primitive!(u32);
-impl_primitive!(u64);
-impl_primitive!(f32);
-impl_primitive!(f64);
+impl_primitive!(Bool);
+impl_primitive!(Int);
+impl_primitive!(Int8);
+impl_primitive!(Int16);
+impl_primitive!(Int32);
+impl_primitive!(Int64);
+impl_primitive!(UInt);
+impl_primitive!(UInt8);
+impl_primitive!(UInt16);
+impl_primitive!(UInt32);
+impl_primitive!(UInt64);
+impl_primitive!(Float);
+impl_primitive!(Double);

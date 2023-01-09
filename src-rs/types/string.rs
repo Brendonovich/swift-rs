@@ -3,7 +3,7 @@ use std::{
     ops::Deref,
 };
 
-use crate::{swift_fn, Int};
+use crate::{swift, Int};
 
 use super::data::SRData;
 
@@ -21,7 +21,7 @@ impl Deref for SRString {
 impl SRString {
     #[inline]
     pub fn as_str(&self) -> &str {
-        unsafe { std::str::from_utf8_unchecked(&*self.0) }
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
     #[inline]
     pub(crate) fn __retain(&self) {
@@ -38,11 +38,11 @@ impl AsRef<[u8]> for SRString {
     }
 }
 
-swift_fn!(allocate_string(data: *const u8, size: Int) -> String);
+swift!(unsafe fn allocate_string(data: *const u8, size: Int) -> String);
 
 impl From<&str> for SRString {
     fn from(string: &str) -> SRString {
-        allocate_string(string.as_ptr(), string.len() as Int)
+        unsafe { allocate_string(string.as_ptr(), string.len() as Int) }
     }
 }
 

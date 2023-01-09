@@ -23,13 +23,13 @@ impl Deref for SRData {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
-        &*self.0.deref().0
+        &self.0.deref().0
     }
 }
 
 impl AsRef<[u8]> for SRData {
     fn as_ref(&self) -> &[u8] {
-        &*self
+        self
     }
 }
 

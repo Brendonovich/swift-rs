@@ -79,6 +79,7 @@ pub fn link_swift_package(package_name: &str, package_root: &str) {
         .join(unversioned_triple)
         .join(profile);
 
+    println!("cargo:rerun-if-changed={package_root}");
     println!("cargo:rustc-link-search=native={}", search_path.display());
     println!("cargo:rustc-link-lib=static={}", package_name);
 }

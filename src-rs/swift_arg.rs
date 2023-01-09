@@ -10,7 +10,7 @@ pub unsafe trait SwiftArg {
     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType;
 }
 
-macro_rules! primitive_impl {
+macro_rules! impl_primitive {
     ($t: ty) => {
         unsafe impl SwiftArg for $t {
             type SwiftRsType = $t;
@@ -27,19 +27,19 @@ macro_rules! primitive_impl {
     };
 }
 
-primitive_impl!(bool);
-primitive_impl!(isize);
-primitive_impl!(i8);
-primitive_impl!(i16);
-primitive_impl!(i32);
-primitive_impl!(i64);
-primitive_impl!(usize);
-primitive_impl!(u8);
-primitive_impl!(u16);
-primitive_impl!(u32);
-primitive_impl!(u64);
-primitive_impl!(f32);
-primitive_impl!(f64);
+impl_primitive!(Bool);
+impl_primitive!(Int);
+impl_primitive!(Int8);
+impl_primitive!(Int16);
+impl_primitive!(Int32);
+impl_primitive!(Int64);
+impl_primitive!(UInt);
+impl_primitive!(UInt8);
+impl_primitive!(UInt16);
+impl_primitive!(UInt32);
+impl_primitive!(UInt64);
+impl_primitive!(Float);
+impl_primitive!(Double);
 
 unsafe impl SwiftArg for SRString {
     type SwiftRsType = SRString;
@@ -50,7 +50,7 @@ unsafe impl SwiftArg for SRString {
     }
 
     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
-        rs_type.0 .0 .0.as_ptr() as *const _ as *const c_void
+        rs_type.0 .0 .0.as_ptr() as Self::SwiftType
     }
 }
 
@@ -63,7 +63,7 @@ unsafe impl SwiftArg for SRData {
     }
 
     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
-        rs_type.0 .0.as_ptr() as *const c_void
+        rs_type.0 .0.as_ptr() as Self::SwiftType
     }
 }
 
@@ -80,18 +80,18 @@ unsafe impl SwiftArg for &str {
     }
 }
 
-unsafe impl SwiftArg for String {
-    type SwiftRsType = SRString;
-    type SwiftType = *const c_void;
+// unsafe impl SwiftArg for String {
+//     type SwiftRsType = SRString;
+//     type SwiftType = *const c_void;
 
-    fn to_swift_rs_type(self) -> Self::SwiftRsType {
-        self.as_str().to_swift_rs_type()
-    }
+//     fn to_swift_rs_type(self) -> Self::SwiftRsType {
+//         self.as_str().to_swift_rs_type()
+//     }
 
-    fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
-        Self::SwiftRsType::as_swift_type(rs_type)
-    }
-}
+//     fn as_swift_type(rs_type: &Self::SwiftRsType) -> Self::SwiftType {
+//         Self::SwiftRsType::as_swift_type(rs_type)
+//     }
+// }
 
 unsafe impl<T: SwiftArg> SwiftArg for *const T {
     type SwiftRsType = *const c_void;

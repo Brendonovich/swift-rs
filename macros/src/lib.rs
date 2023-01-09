@@ -4,7 +4,7 @@ use syn::{parse_macro_input, AttributeArgs, Item, ItemStruct};
 
 #[proc_macro_attribute]
 pub fn swift_object(args: TokenStream, input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(args as AttributeArgs);
+    let _args = parse_macro_input!(args as AttributeArgs);
     let struct_input: proc_macro2::TokenStream = input.clone().into();
     let input = parse_macro_input!(input as Item);
 

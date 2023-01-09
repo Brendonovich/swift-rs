@@ -59,6 +59,5 @@ public class SRString: SRData {
 func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let buffer = UnsafeBufferPointer(start: data, count: size)
     let string = String(bytes: buffer, encoding: .utf8)!
-    let ret = SRString(string)
-    return ret
+    return SRString(string)
 }

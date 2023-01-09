@@ -7,9 +7,10 @@ license = "MIT"
 repository = "https://github.com/Brendonovich/swift-rs"
 edition = "2021"
 exclude=["/src-swift", "*.swift"]
+build = "src-rs/test-build.rs"
 
 [workspace]
-members = ["example"]
+members = ["macros", "example"]
 
 [lib]
 path = "src-rs/lib.rs"
@@ -19,6 +20,13 @@ base64 = "0.13.0"
 serde = { version = "1.0", features = ["derive"], optional = true}
 serde_json = {version = "1.0", optional = true}
 swift-rs-macros = { path = "macros" }
+
+[dev-dependencies]
+serial_test = "0.10.0"
+
+[build-dependencies]
+serde = { version = "1.0", features = ["derive"]}
+serde_json = { version = "1.0" }
 
 [features]
 build = ["serde", "serde_json"]

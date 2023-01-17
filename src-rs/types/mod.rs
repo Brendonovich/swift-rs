@@ -1,9 +1,11 @@
-pub mod array;
-pub mod data;
-pub mod object;
-pub mod string;
+mod array;
+mod data;
+mod object;
+mod scalars;
+mod string;
 
 pub use array::*;
 pub use data::*;
 pub use object::*;
+pub use scalars::*;
 pub use string::*;

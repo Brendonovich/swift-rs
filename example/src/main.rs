@@ -17,16 +17,15 @@ struct Test {
 }
 
 extern "C" {
-    fn get_file_thumbnail_base64(path: SRString) -> SRString;
+    fn get_file_thumbnail_base64(path: &SRString) -> SRString;
     fn get_mounts() -> SRObjectArray<Volume>;
     fn return_nullable(null: bool) -> Option<SRObject<Test>>;
 }
 
 fn main() {
     let path = "/Users";
-    let thumbnail = unsafe { get_file_thumbnail_base64(path.into()) };
-    std::fs::write("icon.txt", &thumbnail).unwrap();
-    println!("Wrote folder icon base64 to icon.txt");
+    let thumbnail = unsafe { get_file_thumbnail_base64(&path.into()) };
+    println!("length of base64 encoded thumbnail: {}", thumbnail.as_str().len());
 
     let mounts = unsafe { get_mounts() };
     println!("First Volume Name: {}", mounts[0].name);

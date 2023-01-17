@@ -26,7 +26,7 @@ impl<T> AsRef<T> for SRObject<T> {
 
 impl<T> Drop for SRObject<T> {
     fn drop(&mut self) {
-        unsafe { swift::release_object(self as *const _ as *const c_void) }
+        unsafe { swift::release_object(self.0.as_ref() as *const _ as *const c_void) }
     }
 }
 

@@ -5,7 +5,7 @@
 
 use serial_test::serial;
 use std::{env, process::Command};
-use swift_rs::SRString;
+use swift_rs::{autoreleasepool, SRString};
 
 macro_rules! test_with_leaks {
     ( $op:expr ) => {{
@@ -77,6 +77,21 @@ fn test_memory_pressure() {
         for _ in 0..10000 {
             let greeting = unsafe { get_greeting(&name) };
             assert_eq!(greeting.as_str(), "Hello Bond");
+        }
+    });
+}
+
+#[test]
+#[serial]
+fn test_autoreleasepool() {
+    test_with_leaks!(|| {
+        // create memory pressure
+        let name: SRString = "Bond".into();
+        for _ in 0..10000 {
+            autoreleasepool!({
+                let greeting = unsafe { get_greeting(&name) };
+                assert_eq!(greeting.as_str(), "Hello Bond");
+            });
         }
     });
 }

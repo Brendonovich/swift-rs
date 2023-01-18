@@ -429,6 +429,19 @@ Complex types can contain whatever combination of primitives and `SRObject<T>` y
 
 A wrapper type for `SRArray<T>` designed for storing `u8`s, essentially just a byte buffer.
 
+### Tighter Memory Control with autoreleasepool
+If you've come to Swift from an Objective-C background, you likely know the utility of `@autoreleasepool` blocks. `swift_rs` has your back on this too, just wrap
+your block of code with a `autoreleasepool!`, and that block of code now executes with its own autorelease pool, e.g.
+```rust
+use swift_rs::autoreleasepool;
+
+for _ in 0..10000 {
+    autoreleasepool!({
+        // do some memory intensive thing here
+    });
+}
+```
+
 ## Limitations
 
 Currently, the only types that can be used as function arguments are number types, boolean and `SRString`. This is because those types are easy to allocate memory for, either on the stack or on the heap via calling out to swift, whereas other types are not. This may be implemented in the future, though.

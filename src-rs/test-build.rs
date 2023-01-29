@@ -10,7 +10,7 @@ fn main() {
 
     #[cfg(feature = "build")]
     if std::env::var("TEST_SWIFT_RS").unwrap_or("false".into()) == "true" {
-        build::link_swift("10.15");
-        build::link_swift_package("test-swift", "tests/swift-pkg")
+        build::link_swift("10.15", "11");
+        build::link_swift_package("test-swift", "tests/swift-pkg", "10.15", "11")
     }
 }

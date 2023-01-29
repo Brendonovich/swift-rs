@@ -10,7 +10,11 @@ fn main() {
 
     #[cfg(feature = "build")]
     if std::env::var("TEST_SWIFT_RS").unwrap_or("false".into()) == "true" {
-        build::link_swift("10.15", "11");
-        build::link_swift_package("test-swift", "tests/swift-pkg", "10.15", "11")
+        use build::SwiftLinker;
+
+        SwiftLinker::new("10.15")
+            .with_ios("11")
+            .with_package("test-swift", "tests/swift-pkg")
+            .link();
     }
 }

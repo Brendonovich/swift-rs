@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "SwiftRs",
     platforms: [
-        .macOS(.v10_10), // OS X Yosemite is the minimum supported version
+        .macOS(.v10_13),
         .iOS(.v11),
     ],
     products: [

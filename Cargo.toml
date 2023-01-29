@@ -25,4 +25,5 @@ serde_json = { version = "1.0" }
 serial_test = "0.10"
 
 [features]
+default = ["build"]
 build = ["serde", "serde_json"]

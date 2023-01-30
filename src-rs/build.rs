@@ -239,10 +239,16 @@ impl SwiftLinker {
                 panic!("Failed to compile swift package {}", package.name);
             }
 
-            let unversioned_triple = rust_target.unversioned_swift_target_triple();
             let search_path = package_path
                 .join(".build")
-                .join(unversioned_triple)
+                // swift build uses this output folder no matter what is the target
+                .join(format!(
+                    "{}-apple-macosx",
+                    match rust_target.arch.as_str() {
+                        "aarch64" => "arm64",
+                        arch => arch,
+                    }
+                ))
                 .join(&profile);
 
             // TODO: fix

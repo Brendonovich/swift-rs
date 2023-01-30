@@ -23,25 +23,20 @@ Next, some setup work must be done:
 1. Ensure your swift code is organized into a Swift Package. This can be done in XCode by selecting File -> New -> Project -> Multiplatform -> Swift Package and importing your existing code.
 2. Add `SwiftRs` as a dependency to your Swift package. A quick internet search can show you how to do this.
 3. Create a `build.rs` file in your project's source folder, if you don't have one already.
-4. Link the swift runtime to your binary
+4. Link your swift package to your binary. `link_swift_package` takes 2 arguments: The name of your package as specified in its `Package.swift`, and the location of your package's root folder relative to your rust project's root folder.
 
 ```rust
-use swift_rs::build;
+use swift_rs::build::SwiftLinker;
 
 fn build() {
-    build::link_swift();
-
-    // Other build steps
-}
-```
-
-5. Link your swift package to your binary. `link_swift_package` takes 2 arguments: The name of your package as specified in its `Package.swift`, and the location of your package's root folder relative to your rust project's root folder.
-
-```rust
-use swift_rs::build;
-
-fn build() {
-    build::link_swift("10.15" /* macOS Catalina */); // Ensure the same minimum supported macOS version is specified as in your `Package.swift` file.
+    // Ensure the same minimum supported macOS version is specified as in your `Package.swift` file.
+    SwiftLinker::new("10.15")
+        // Only if you are also targetting iOS
+        // Ensure the same minimum supported iOS version is specified as in your `Package.swift` file
+        .with_ios("11")
+        .with_package(PACKAGE_NAME, PACKAGE_PATH)
+        .link();
+    build::link_swift("10.15" /* macOS Catalina */); 
     build::link_swift_package(PACKAGE_NAME, PACKAGE_PATH);
 
     // Other build steps

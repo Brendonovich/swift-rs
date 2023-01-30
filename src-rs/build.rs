@@ -97,8 +97,8 @@ impl Display for SwiftSDK {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::MacOS => write!(f, "macosx"),
-            Self::IOSSimulator => write!(f, "iphoneos"),
-            Self::IOS => write!(f, "iphonesimulator"),
+            Self::IOSSimulator => write!(f, "iphonesimulator"),
+            Self::IOS => write!(f, "iphoneos"),
         }
     }
 }
@@ -196,7 +196,6 @@ impl SwiftLinker {
 
         let profile = env::var("PROFILE").unwrap();
         let rust_target = RustTarget::from_env();
-        let swift_sdk = SwiftSDK::from_os(&rust_target.os);
 
         for package in self.packages {
             let package_path =
@@ -209,13 +208,13 @@ impl SwiftLinker {
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
                 let sdk_path_output = Command::new("xcrun")
-                    .args(["--sdk", &swift_sdk.to_string(), "--show-sdk-path"])
+                    .args(["--sdk", &rust_target.sdk.to_string(), "--show-sdk-path"])
                     .output()
                     .unwrap();
                 if !sdk_path_output.status.success() {
                     panic!(
                         "Failed to get SDK path with `xcrun --sdk {} --show-sdk-path`",
-                        swift_sdk.to_string()
+                        rust_target.sdk.to_string()
                     );
                 }
 

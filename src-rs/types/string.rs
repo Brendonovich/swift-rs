@@ -10,6 +10,8 @@ use super::data::SRData;
 #[repr(transparent)]
 pub struct SRString(SRData);
 
+crate::swift::impl_to_swift!(SRString);
+
 impl Deref for SRString {
     type Target = str;
 

@@ -2,13 +2,13 @@ import SwiftRs
 import AppKit
 
 @_cdecl("get_file_thumbnail_base64")
-func getFileThumbnailBase64(path_ptr: UnsafePointer<SRString>) -> SRString {
-    let path = path_ptr.pointee.to_string();
+func getFileThumbnailBase64(path: SRString) -> SRString {
+    let path = path.to_string();
     
     let image = NSWorkspace.shared.icon(forFile: path)
     let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!.representation(using: .png, properties: [:])!
     
-    return toRust(SRString(bitmap.base64EncodedString()))
+    return SRString(bitmap.base64EncodedString()).toRust()
 }
 
 class Volume: NSObject {
@@ -74,7 +74,7 @@ func getMounts() -> SRObjectArray {
         }
     }
     
-    return toRust(SRObjectArray(validMounts))
+    return SRObjectArray(validMounts).toRust()
 }
 
 class Test: NSObject {
@@ -90,5 +90,5 @@ class Test: NSObject {
 func returnNullable(null: Bool) -> Test? {
     if (null == true) { return nil }
     
-    return toRust(Test(null))
+    return Test(null).toRust()
 }

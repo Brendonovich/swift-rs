@@ -34,7 +34,7 @@ impl SwiftEnv {
         let target = rust_target.swift_target_triple(minimum_macos_version, minimum_ios_version);
 
         let swift_target_info_str = Command::new("swift")
-            .args(&["-target", &target, "-print-target-info"])
+            .args(["-target", &target, "-print-target-info"])
             .output()
             .unwrap()
             .stdout;
@@ -43,6 +43,7 @@ impl SwiftEnv {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 enum RustTargetOS {
     MacOS,
     IOS,
@@ -74,6 +75,7 @@ impl Display for RustTargetOS {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 enum SwiftSDK {
     MacOS,
     IOS,
@@ -185,10 +187,7 @@ impl SwiftLinker {
     }
 
     pub fn link(self) {
-        let swift_env = SwiftEnv::new(
-            &self.macos_min_version,
-            self.ios_min_version.as_ref().map(|v| v.as_str()),
-        );
+        let swift_env = SwiftEnv::new(&self.macos_min_version, self.ios_min_version.as_deref());
 
         for path in swift_env.paths.runtime_library_paths {
             println!("cargo:rustc-link-search=native={}", path);
@@ -204,7 +203,7 @@ impl SwiftLinker {
 
             let mut command = Command::new("swift");
             command
-                .args(&["build", "-c", &profile])
+                .args(["build", "-c", &profile])
                 .current_dir(&package.path);
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
@@ -215,7 +214,7 @@ impl SwiftLinker {
                 if !sdk_path_output.status.success() {
                     panic!(
                         "Failed to get SDK path with `xcrun --sdk {} --show-sdk-path`",
-                        swift_sdk.to_string()
+                        swift_sdk
                     );
                 }
 
@@ -225,13 +224,13 @@ impl SwiftLinker {
                     "-Xswiftc",
                     "-sdk",
                     "-Xswiftc",
-                    &sdk_path.trim(),
+                    sdk_path.trim(),
                     "-Xswiftc",
                     "-target",
                     "-Xswiftc",
                     &rust_target.swift_target_triple(
                         &self.macos_min_version,
-                        self.ios_min_version.as_ref().map(|v| v.as_str()),
+                        self.ios_min_version.as_deref(),
                     ),
                 ]);
             }

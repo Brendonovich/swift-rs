@@ -10,6 +10,8 @@ struct SRObjectImpl<T> {
     data: T,
 }
 
+crate::swift::impl_to_swift!(SRObject<T>);
+
 impl<T> Deref for SRObject<T> {
     type Target = T;
 

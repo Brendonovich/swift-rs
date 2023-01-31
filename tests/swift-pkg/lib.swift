@@ -1,11 +1,11 @@
 import SwiftRs
 
 @_cdecl("get_greeting")
-func getGreeting(name: UnsafePointer<SRString>) -> SRString {
-    return toRust(SRString("Hello \(name.pointee.to_string())"))
+func getGreeting(name: SRString) -> SRString {
+    return SRString("Hello \(name.to_string())").toRust()
 }
 
 @_cdecl("reflect_string")
-func reflectString(ptr: UnsafePointer<SRString>) -> SRString {
-    return ptr.pointee
+func reflectString(str: SRString) -> SRString {
+    return str
 }

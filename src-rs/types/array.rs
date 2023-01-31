@@ -15,6 +15,8 @@ pub struct SRArrayImpl<T> {
     length: usize,
 }
 
+crate::swift::impl_to_swift!(SRArray<T>);
+
 impl<T> Deref for SRArray<T> {
     type Target = [T];
 

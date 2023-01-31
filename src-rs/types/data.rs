@@ -8,6 +8,8 @@ pub struct SRData(SRObject<SRDataImpl>);
 #[repr(transparent)]
 struct SRDataImpl(SRArray<u8>);
 
+crate::swift::impl_to_swift!(SRData);
+
 impl Deref for SRData {
     type Target = [u8];
 

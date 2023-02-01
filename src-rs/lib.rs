@@ -1,5 +1,5 @@
 mod swift;
-pub use swift::{SwiftRef, ToSwift};
+pub use swift::SwiftRef;
 
 pub mod types;
 

@@ -240,7 +240,7 @@ public func swiftPrint(value: SRString) {
 ```
 
 ```rust
-use swift_rs::{types::SRString, SwiftRef, ToSwift};
+use swift_rs::{types::SRString, SwiftRef};
 
 extern "C" {
     fn swift_print(value: SwiftRef<SRString>);
@@ -251,7 +251,7 @@ fn main() {
     // This will allocate memory in Swift and copy the string
     let value: SRString = "lorem ipsum".into();
 
-    unsafe { swift_print(value.to_swift()) }; // Will print "lorem ipsum" to the console
+    unsafe { swift_print(value.swift_ref()) }; // Will print "lorem ipsum" to the console
 }
 ```
 

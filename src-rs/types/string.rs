@@ -3,26 +3,39 @@ use std::{
     ops::Deref,
 };
 
-use crate::swift;
+use crate::{
+    swift::{self, SwiftObject},
+    SRObject, SwiftRef,
+};
 
 use super::data::SRData;
 
 #[repr(transparent)]
 pub struct SRString(SRData);
 
-crate::swift::impl_to_swift!(SRString);
+impl SRString {
+    pub fn as_str(&self) -> &str {
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
+    }
+
+    pub fn swift_ref(&self) -> SwiftRef<Self> {
+        self.into()
+    }
+}
+
+impl SwiftObject for SRString {
+    type Shape = <SRData as SwiftObject>::Shape;
+
+    fn get_object(&self) -> &SRObject<Self::Shape> {
+        &self.0.get_object()
+    }
+}
 
 impl Deref for SRString {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
         self.as_str()
-    }
-}
-
-impl SRString {
-    pub fn as_str(&self) -> &str {
-        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
 

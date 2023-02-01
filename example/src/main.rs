@@ -1,4 +1,4 @@
-use swift_rs::{SRObject, SRObjectArray, SRString, SwiftRef, ToSwift};
+use swift_rs::{SRObject, SRObjectArray, SRString, SwiftRef};
 
 #[repr(C)]
 struct Volume {
@@ -24,8 +24,11 @@ extern "C" {
 
 fn main() {
     let path = "/Users";
-    let thumbnail = unsafe { get_file_thumbnail_base64(SRString::from(path).to_swift()) };
-    println!("length of base64 encoded thumbnail: {}", thumbnail.as_str().len());
+    let thumbnail = unsafe { get_file_thumbnail_base64(SRString::from(path).swift_ref()) };
+    println!(
+        "length of base64 encoded thumbnail: {}",
+        thumbnail.as_str().len()
+    );
 
     let mounts = unsafe { get_mounts() };
     println!("First Volume Name: {}", mounts[0].name);

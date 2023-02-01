@@ -5,7 +5,7 @@
 
 use serial_test::serial;
 use std::{env, process::Command};
-use swift_rs::{autoreleasepool, SRString, SwiftRef, ToSwift};
+use swift_rs::{autoreleasepool, SRString, SwiftRef};
 
 macro_rules! test_with_leaks {
     ( $op:expr ) => {{
@@ -50,7 +50,7 @@ macro_rules! test_with_leaks {
 fn test_string() {
     test_with_leaks!(|| {
         let name: SRString = "Bond".into();
-        let greeting = unsafe { get_greeting(name.to_swift()) };
+        let greeting = unsafe { get_greeting(name.swift_ref()) };
         assert_eq!(greeting.as_str(), "Hello Bond");
     });
 }
@@ -62,7 +62,7 @@ fn test_reflection() {
         // create memory pressure
         let name: SRString = "Bond".into();
         for _ in 0..10000 {
-            let reflected = unsafe { reflect_string(name.to_swift()) };
+            let reflected = unsafe { reflect_string(name.swift_ref()) };
             assert_eq!(name.as_str(), reflected.as_str());
         }
     });
@@ -75,7 +75,7 @@ fn test_memory_pressure() {
         // create memory pressure
         let name: SRString = "Bond".into();
         for _ in 0..10000 {
-            let greeting = unsafe { get_greeting(name.to_swift()) };
+            let greeting = unsafe { get_greeting(name.swift_ref()) };
             assert_eq!(greeting.as_str(), "Hello Bond");
         }
     });
@@ -89,7 +89,7 @@ fn test_autoreleasepool() {
         let name: SRString = "Bond".into();
         for _ in 0..10000 {
             autoreleasepool!({
-                let greeting = unsafe { get_greeting(name.to_swift()) };
+                let greeting = unsafe { get_greeting(name.swift_ref()) };
                 assert_eq!(greeting.as_str(), "Hello Bond");
             });
         }

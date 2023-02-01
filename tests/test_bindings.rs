@@ -11,9 +11,13 @@ macro_rules! test_with_leaks {
     ( $op:expr ) => {{
         let leaks_env_var = "TEST_RUNNING_UNDER_LEAKS";
         if env::var(leaks_env_var).unwrap_or_else(|_| "false".into()) == "true" {
-            let _ = $op;
+            let _ = $op();
         } else {
-            // run the above codepath under leaks monitoring
+            // we run $op directly in the current process first, as leaks will not give
+            // us the exit code of $op, but only if memory leaks happened or not
+            $op();
+
+            // and now we run the above codepath under leaks monitoring
             let exe = env::current_exe().unwrap();
 
             // codesign the binary first, so that leaks can be run

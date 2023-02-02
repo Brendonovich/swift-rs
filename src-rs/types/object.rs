@@ -1,7 +1,4 @@
-use crate::{
-    swift::{self, SwiftObject},
-    SwiftRef,
-};
+use crate::swift::{self, SwiftObject};
 use std::{ffi::c_void, ops::Deref, ptr::NonNull};
 
 #[repr(C)]
@@ -11,17 +8,7 @@ pub struct SRObjectImpl<T> {
 }
 
 #[repr(transparent)]
-pub struct SRObject<T>(NonNull<SRObjectImpl<T>>);
-
-impl<T> SRObject<T> {
-    pub(crate) fn clone(&self) -> Self {
-        Self(self.0)
-    }
-
-    pub fn swift_ref(&self) -> SwiftRef<Self> {
-        self.into()
-    }
-}
+pub struct SRObject<T>(pub(crate) NonNull<SRObjectImpl<T>>);
 
 impl<T> SwiftObject for SRObject<T> {
     type Shape = T;

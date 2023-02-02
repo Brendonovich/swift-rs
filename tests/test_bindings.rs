@@ -5,7 +5,7 @@
 
 use serial_test::serial;
 use std::{env, process::Command};
-use swift_rs::{autoreleasepool, SRString, SwiftRef};
+use swift_rs::{autoreleasepool, swift, SRString};
 
 macro_rules! test_with_leaks {
     ( $op:expr ) => {{
@@ -54,7 +54,7 @@ macro_rules! test_with_leaks {
 fn test_string() {
     test_with_leaks!(|| {
         let name: SRString = "Bond".into();
-        let greeting = unsafe { get_greeting(name.swift_ref()) };
+        let greeting = unsafe { get_greeting(&name) };
         assert_eq!(greeting.as_str(), "Hello Bond");
     });
 }
@@ -66,7 +66,7 @@ fn test_reflection() {
         // create memory pressure
         let name: SRString = "Bond".into();
         for _ in 0..10000 {
-            let reflected = unsafe { reflect_string(name.swift_ref()) };
+            let reflected = unsafe { reflect_string(&name) };
             assert_eq!(name.as_str(), reflected.as_str());
         }
     });
@@ -79,7 +79,7 @@ fn test_memory_pressure() {
         // create memory pressure
         let name: SRString = "Bond".into();
         for _ in 0..10000 {
-            let greeting = unsafe { get_greeting(name.swift_ref()) };
+            let greeting = unsafe { get_greeting(&name) };
             assert_eq!(greeting.as_str(), "Hello Bond");
         }
     });
@@ -93,17 +93,15 @@ fn test_autoreleasepool() {
         let name: SRString = "Bond".into();
         for _ in 0..10000 {
             autoreleasepool!({
-                let greeting = unsafe { get_greeting(name.swift_ref()) };
+                let greeting = unsafe { get_greeting(&name) };
                 assert_eq!(greeting.as_str(), "Hello Bond");
             });
         }
     });
 }
 
-extern "C" {
-    fn get_greeting(name: SwiftRef<SRString>) -> SRString;
-    fn reflect_string(string: SwiftRef<SRString>) -> SRString;
-}
+swift!(fn get_greeting(name: &SRString) -> SRString);
+swift!(fn reflect_string(string: &SRString) -> SRString);
 
 const DEBUG_PLIST_XML: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">

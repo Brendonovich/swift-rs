@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     swift::{self, SwiftObject},
-    SRObject, SwiftRef,
+    SRObject,
 };
 
 use super::data::SRData;
@@ -17,17 +17,13 @@ impl SRString {
     pub fn as_str(&self) -> &str {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
-
-    pub fn swift_ref(&self) -> SwiftRef<Self> {
-        self.into()
-    }
 }
 
 impl SwiftObject for SRString {
     type Shape = <SRData as SwiftObject>::Shape;
 
     fn get_object(&self) -> &SRObject<Self::Shape> {
-        &self.0.get_object()
+        self.0.get_object()
     }
 }
 

@@ -1,6 +1,6 @@
 use std::{ops::Deref, ptr::NonNull};
 
-use crate::{swift::SwiftObject, SwiftRef};
+use crate::swift::SwiftObject;
 
 use super::SRObject;
 
@@ -16,12 +16,6 @@ pub struct SRArrayImpl<T> {
 
 #[repr(transparent)]
 pub struct SRArray<T>(SRObject<SRArrayImpl<T>>);
-
-impl<T> SRArray<T> {
-    pub fn swift_ref(&self) -> SwiftRef<Self> {
-        self.into()
-    }
-}
 
 impl<T> SwiftObject for SRArray<T> {
     type Shape = SRArrayImpl<T>;

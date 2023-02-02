@@ -1,4 +1,4 @@
-use crate::{swift::SwiftObject, SwiftRef};
+use crate::swift::SwiftObject;
 
 use super::{array::SRArray, SRObject};
 
@@ -8,12 +8,6 @@ type Data = SRArray<u8>;
 
 #[repr(transparent)]
 pub struct SRData(SRObject<Data>);
-
-impl SRData {
-    pub fn swift_ref(&self) -> SwiftRef<Self> {
-        self.into()
-    }
-}
 
 impl SwiftObject for SRData {
     type Shape = Data;

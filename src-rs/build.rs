@@ -193,7 +193,8 @@ impl SwiftLinker {
             println!("cargo:rustc-link-search=native={path}");
         }
 
-        let profile = env::var("PROFILE").unwrap();
+        let debug = env::var("DEBUG").unwrap() == "true";
+        let configuration = if debug { "debug" } else { "release" };
         let rust_target = RustTarget::from_env();
 
         for package in self.packages {
@@ -202,7 +203,7 @@ impl SwiftLinker {
 
             let mut command = Command::new("swift");
             command
-                .args(["build", "-c", &profile])
+                .args(["build", "-c", &configuration])
                 .current_dir(&package.path);
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
@@ -248,7 +249,7 @@ impl SwiftLinker {
                         arch => arch,
                     }
                 ))
-                .join(&profile);
+                .join(&configuration);
 
             // TODO: fix
             // println!(

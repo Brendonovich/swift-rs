@@ -65,7 +65,7 @@ fn test_reflection() {
     test_with_leaks!(|| {
         // create memory pressure
         let name: SRString = "Bond".into();
-        for _ in 0..10000 {
+        for _ in 0..10_000 {
             let reflected = unsafe { reflect_string(&name) };
             assert_eq!(name.as_str(), reflected.as_str());
         }
@@ -78,7 +78,7 @@ fn test_memory_pressure() {
     test_with_leaks!(|| {
         // create memory pressure
         let name: SRString = "Bond".into();
-        for _ in 0..10000 {
+        for _ in 0..10_000 {
             let greeting = unsafe { get_greeting(&name) };
             assert_eq!(greeting.as_str(), "Hello Bond");
         }
@@ -91,7 +91,7 @@ fn test_autoreleasepool() {
     test_with_leaks!(|| {
         // create memory pressure
         let name: SRString = "Bond".into();
-        for _ in 0..10000 {
+        for _ in 0..10_000 {
             autoreleasepool!({
                 let greeting = unsafe { get_greeting(&name) };
                 assert_eq!(greeting.as_str(), "Hello Bond");
@@ -102,6 +102,7 @@ fn test_autoreleasepool() {
 
 swift!(fn get_greeting(name: &SRString) -> SRString);
 swift!(fn reflect_string(string: &SRString) -> SRString);
+swift!(fn retain_count(string: &SRString));
 
 const DEBUG_PLIST_XML: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">

@@ -17,6 +17,14 @@ pub trait SwiftArg<'a> {
     /// but is reliable if using the [`swift!`] macro,
     /// so it is not advised to call this function manually.
     unsafe fn as_arg(&'a self) -> Self::ArgType;
+
+    unsafe fn as_ptr(&'a self) -> Option<*const c_void> {
+        None
+    }
+
+    unsafe fn collect_ptrs(&'a self, _: bool) -> Vec<(*const c_void, bool)> {
+        vec![]
+    }
 }
 
 macro_rules! primitive_impl {
@@ -47,7 +55,8 @@ primitive_impl!(
     Float64,
     *const c_void,
     *mut c_void,
-    *const u8
+    *const u8,
+    ()
 );
 
 macro_rules! ref_impl {
@@ -57,6 +66,14 @@ macro_rules! ref_impl {
 
             unsafe fn as_arg(&'a self) -> Self::ArgType {
                 self.swift_ref()
+            }
+
+            unsafe fn as_ptr(&'a self) -> Option<*const c_void> {
+                Some(self.swift_ref().as_ptr())
+            }
+
+            unsafe fn collect_ptrs(&'a self, is_ref: bool) -> Vec<(*const c_void, bool)> {
+                vec![(self.swift_ref().as_ptr(), is_ref)]
             }
         })+
     };
@@ -69,5 +86,13 @@ impl<'a, T: SwiftArg<'a>> SwiftArg<'a> for &T {
 
     unsafe fn as_arg(&'a self) -> Self::ArgType {
         (*self).as_arg()
+    }
+
+    unsafe fn as_ptr(&'a self) -> Option<*const c_void> {
+        (*self).as_ptr()
+    }
+
+    unsafe fn collect_ptrs(&'a self, _: bool) -> Vec<(*const c_void, bool)> {
+        (*self).collect_ptrs(true)
     }
 }

@@ -1,11 +1,19 @@
 use crate::{swift::SwiftObject, *};
 use std::ffi::c_void;
 
-pub trait SwiftRet {}
+pub trait SwiftRet {
+    /// Adds a retain to the value if possible
+    ///
+    /// # Safety
+    /// Just don't use this.
+    /// Let [`swift!`] handle it.
+    unsafe fn retain(&self) {}
+}
 
 macro_rules! primitive_impl {
     ($($t:ty),+) => {
-        $(impl SwiftRet for $t {})+
+        $(impl SwiftRet for $t {
+        })+
     };
 }
 
@@ -29,4 +37,8 @@ primitive_impl!(
     ()
 );
 
-impl<T: SwiftObject> SwiftRet for T {}
+impl<T: SwiftObject> SwiftRet for T {
+    unsafe fn retain(&self) {
+        (*self).retain()
+    }
+}

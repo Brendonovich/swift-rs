@@ -5,7 +5,7 @@
 
 use serial_test::serial;
 use std::{env, process::Command};
-use swift_rs::{autoreleasepool, swift, SRString};
+use swift_rs::*;
 
 macro_rules! test_with_leaks {
     ( $op:expr ) => {{
@@ -100,9 +100,31 @@ fn test_autoreleasepool() {
     });
 }
 
+#[test]
+#[serial]
+fn test_complex() {
+    test_with_leaks!(|| {
+        let mut v = vec![];
+
+        for _ in 0..10_000 {
+            let data = unsafe { complex_data() };
+            assert_eq!(data[0].a.as_str(), "Brendan");
+            v.push(data);
+        }
+    });
+}
+
 swift!(fn get_greeting(name: &SRString) -> SRString);
 swift!(fn reflect_string(string: &SRString) -> SRString);
-swift!(fn retain_count(string: &SRString));
+
+#[repr(C)]
+struct Complex {
+    a: SRString,
+    b: Int,
+    c: Bool,
+}
+
+swift!(fn complex_data() -> SRObjectArray<Complex>);
 
 const DEBUG_PLIST_XML: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">

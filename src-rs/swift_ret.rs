@@ -37,6 +37,14 @@ primitive_impl!(
     ()
 );
 
+impl<T: SwiftObject> SwiftRet for Option<T> {
+    unsafe fn retain(&self) {
+        if let Some(v) = self {
+            v.retain()
+        }
+    }
+}
+
 impl<T: SwiftObject> SwiftRet for T {
     unsafe fn retain(&self) {
         (*self).retain()

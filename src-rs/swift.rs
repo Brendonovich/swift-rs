@@ -82,7 +82,7 @@ swift!(pub(crate) fn allocate_string(data: *const u8, size: UInt) -> SRString);
 #[macro_export]
 macro_rules! swift {
     ($vis:vis fn $name:ident $(<$($lt:lifetime),+>)? ($($arg:ident: $arg_ty:ty),*) $(-> $ret:ty)?) => {
-        $vis unsafe fn $name $(<$($lt),*>)? ($($arg: $arg_ty),+) $(-> $ret)? {
+        $vis unsafe fn $name $(<$($lt),*>)? ($($arg: $arg_ty),*) $(-> $ret)? {
             extern "C" {
                 fn $name $(<$($lt),*>)? ($($arg: <$arg_ty as $crate::SwiftArg>::ArgType),*) $(-> $ret)?;
             }

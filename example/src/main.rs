@@ -1,4 +1,4 @@
-use swift_rs::*;
+use swift_rs::{swift, SRObject, SRObjectArray, SRString};
 
 #[repr(C)]
 struct Volume {
@@ -21,8 +21,8 @@ swift!(fn get_mounts() -> SRObjectArray<Volume>);
 swift!(fn return_nullable(null: bool) -> Option<SRObject<Test>>);
 
 fn main() {
-    let path = "/Users".into();
-    let thumbnail = unsafe { get_file_thumbnail_base64(&path) };
+    let path = "/Users";
+    let thumbnail = unsafe { get_file_thumbnail_base64(&path.into()) };
     println!(
         "length of base64 encoded thumbnail: {}",
         thumbnail.as_str().len()

@@ -5,15 +5,19 @@
 
 use serial_test::serial;
 use std::{env, process::Command};
-use swift_rs::{autoreleasepool, SRString};
+use swift_rs::*;
 
 macro_rules! test_with_leaks {
     ( $op:expr ) => {{
         let leaks_env_var = "TEST_RUNNING_UNDER_LEAKS";
         if env::var(leaks_env_var).unwrap_or_else(|_| "false".into()) == "true" {
-            let _ = $op;
+            let _ = $op();
         } else {
-            // run the above codepath under leaks monitoring
+            // we run $op directly in the current process first, as leaks will not give
+            // us the exit code of $op, but only if memory leaks happened or not
+            $op();
+
+            // and now we run the above codepath under leaks monitoring
             let exe = env::current_exe().unwrap();
 
             // codesign the binary first, so that leaks can be run
@@ -61,7 +65,7 @@ fn test_reflection() {
     test_with_leaks!(|| {
         // create memory pressure
         let name: SRString = "Bond".into();
-        for _ in 0..10000 {
+        for _ in 0..10_000 {
             let reflected = unsafe { reflect_string(&name) };
             assert_eq!(name.as_str(), reflected.as_str());
         }
@@ -74,7 +78,7 @@ fn test_memory_pressure() {
     test_with_leaks!(|| {
         // create memory pressure
         let name: SRString = "Bond".into();
-        for _ in 0..10000 {
+        for _ in 0..10_000 {
             let greeting = unsafe { get_greeting(&name) };
             assert_eq!(greeting.as_str(), "Hello Bond");
         }
@@ -87,7 +91,7 @@ fn test_autoreleasepool() {
     test_with_leaks!(|| {
         // create memory pressure
         let name: SRString = "Bond".into();
-        for _ in 0..10000 {
+        for _ in 0..10_000 {
             autoreleasepool!({
                 let greeting = unsafe { get_greeting(&name) };
                 assert_eq!(greeting.as_str(), "Hello Bond");
@@ -96,10 +100,31 @@ fn test_autoreleasepool() {
     });
 }
 
-extern "C" {
-    fn get_greeting(name: &SRString) -> SRString;
-    fn reflect_string(string: &SRString) -> SRString;
+#[test]
+#[serial]
+fn test_complex() {
+    test_with_leaks!(|| {
+        let mut v = vec![];
+
+        for _ in 0..10_000 {
+            let data = unsafe { complex_data() };
+            assert_eq!(data[0].a.as_str(), "Brendan");
+            v.push(data);
+        }
+    });
 }
+
+swift!(fn get_greeting(name: &SRString) -> SRString);
+swift!(fn reflect_string(string: &SRString) -> SRString);
+
+#[repr(C)]
+struct Complex {
+    a: SRString,
+    b: Int,
+    c: Bool,
+}
+
+swift!(fn complex_data() -> SRObjectArray<Complex>);
 
 const DEBUG_PLIST_XML: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">

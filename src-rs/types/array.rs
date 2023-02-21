@@ -1,18 +1,28 @@
 use std::{ops::Deref, ptr::NonNull};
 
+use crate::swift::SwiftObject;
+
 use super::SRObject;
 
 // SRArray is wrapped in SRObject since the
 // Swift implementation extends NSObject
 pub type SRObjectArray<T> = SRObject<SRArray<SRObject<T>>>;
 
-#[repr(transparent)]
-pub struct SRArray<T>(SRObject<SRArrayImpl<T>>);
-
 #[repr(C)]
 pub struct SRArrayImpl<T> {
     data: NonNull<T>,
     length: usize,
+}
+
+#[repr(transparent)]
+pub struct SRArray<T>(SRObject<SRArrayImpl<T>>);
+
+impl<T> SwiftObject for SRArray<T> {
+    type Shape = SRArrayImpl<T>;
+
+    fn get_object(&self) -> &SRObject<Self::Shape> {
+        &self.0
+    }
 }
 
 impl<T> Deref for SRArray<T> {

@@ -1,13 +1,21 @@
-use crate::swift;
+use crate::swift::{self, SwiftObject};
 use std::{ffi::c_void, ops::Deref, ptr::NonNull};
 
-#[repr(transparent)]
-pub struct SRObject<T>(NonNull<SRObjectImpl<T>>);
-
 #[repr(C)]
-struct SRObjectImpl<T> {
+pub struct SRObjectImpl<T> {
     _nsobject_offset: u8,
     data: T,
+}
+
+#[repr(transparent)]
+pub struct SRObject<T>(pub(crate) NonNull<SRObjectImpl<T>>);
+
+impl<T> SwiftObject for SRObject<T> {
+    type Shape = T;
+
+    fn get_object(&self) -> &SRObject<Self::Shape> {
+        self
+    }
 }
 
 impl<T> Deref for SRObject<T> {

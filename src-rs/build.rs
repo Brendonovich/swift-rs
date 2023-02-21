@@ -189,6 +189,7 @@ impl SwiftLinker {
     pub fn link(self) {
         let swift_env = SwiftEnv::new(&self.macos_min_version, self.ios_min_version.as_deref());
 
+        #[allow(clippy::uninlined_format_args)]
         for path in swift_env.paths.runtime_library_paths {
             println!("cargo:rustc-link-search=native={path}");
         }

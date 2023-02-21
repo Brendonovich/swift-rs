@@ -1,18 +1,27 @@
+use crate::swift::SwiftObject;
+
 use super::{array::SRArray, SRObject};
 
 use std::ops::Deref;
 
-#[repr(transparent)]
-pub struct SRData(SRObject<SRDataImpl>);
+type Data = SRArray<u8>;
 
 #[repr(transparent)]
-struct SRDataImpl(SRArray<u8>);
+pub struct SRData(SRObject<Data>);
+
+impl SwiftObject for SRData {
+    type Shape = Data;
+
+    fn get_object(&self) -> &SRObject<Self::Shape> {
+        &self.0
+    }
+}
 
 impl Deref for SRData {
     type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
-        &self.0 .0
+        &self.0
     }
 }
 

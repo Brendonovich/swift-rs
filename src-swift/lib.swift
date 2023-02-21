@@ -55,23 +55,16 @@ public class SRString: SRData {
     }
 }
 
-/**
- Prepares `obj` to be sent to Rust. This takes a retained copy of `obj`,
- converts it into a raw pointer, and then returns a ref to this pointer.
- The responsibility of releasing this object from hereon, lies with Rust.
-
- - Returns: a reference to the same object
- */
-public func toRust<T: NSObject>(_ obj: T) -> T {
-    let ownedPtr = Unmanaged.passRetained(obj).toOpaque()
-    return Unmanaged<T>.fromOpaque(ownedPtr).takeUnretainedValue()
-}
-
 @_cdecl("allocate_string")
 func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let buffer = UnsafeBufferPointer(start: data, count: size)
     let string = String(bytes: buffer, encoding: .utf8)!
-    return toRust(SRString(string))
+    return SRString(string)
+}
+
+@_cdecl("retain_object")
+func retainObject(ptr: UnsafeMutableRawPointer) {
+    let _ = Unmanaged<AnyObject>.fromOpaque(ptr).retain()
 }
 
 @_cdecl("release_object")

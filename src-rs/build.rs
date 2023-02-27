@@ -204,7 +204,7 @@ impl SwiftLinker {
 
             let mut command = Command::new("swift");
             command
-                .args(["build", "-c", &configuration])
+                .args(["build", "-c", configuration])
                 .current_dir(&package.path);
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
@@ -250,7 +250,7 @@ impl SwiftLinker {
                         arch => arch,
                     }
                 ))
-                .join(&configuration);
+                .join(configuration);
 
             // TODO: fix
             // println!(

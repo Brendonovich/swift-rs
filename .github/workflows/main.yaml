@@ -28,10 +28,6 @@ jobs:
       - name: Test example
         working-directory: example
         run: cargo +${{ matrix.rust }} run --locked --verbose -- --ignored
-      - name: Cleanup after default build
-        run: cargo +${{ matrix.rust }} clean
-      - name: Compile with build enabled
-        run: cargo +${{ matrix.rust }} build --features build
       - name: Run Tests
         env:
           TEST_SWIFT_RS: "true"

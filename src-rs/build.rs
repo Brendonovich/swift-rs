@@ -167,6 +167,8 @@ pub struct SwiftLinker {
 
 impl SwiftLinker {
     /// Creates a new [`SwiftLinker`] with a minimum macOS verison.
+    ///
+    /// Minimum macOS version must be at least 10.13.
     pub fn new(macos_min_version: &str) -> Self {
         Self {
             packages: vec![],
@@ -177,6 +179,8 @@ impl SwiftLinker {
 
     /// Instructs the [`SwiftLinker`] to also compile for iOS
     /// using the specified minimum iOS version.
+    ///
+    /// Minimum iOS version must be at least 11.
     pub fn with_ios(mut self, min_version: &str) -> Self {
         self.ios_min_version = Some(min_version.to_string());
         self

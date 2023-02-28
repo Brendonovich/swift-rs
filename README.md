@@ -22,17 +22,24 @@ Next, some setup work must be done:
 1. Ensure your swift code is organized into a Swift Package.
 This can be done in XCode by selecting File -> New -> Project -> Multiplatform -> Swift Package and importing your existing code.
 2. Add `SwiftRs` as a dependency to your Swift package.
-A quick internet search can show you how to do this.
+```swift
+let package = Package(
+    dependencies: [
+        .package(name: "SwiftRs", git = "https://github.com/Brendonovich/swift-rs", from = "1.0.0")
+    ],
+    .. // other configuration
+)
+```
 3. Create a `build.rs` file in your project's root folder, if you don't have one already.
 4. Use `SwiftLinker` in your `build.rs` file to link both the Swift runtime and your Swift package.
-The package name should be the same as is specified in your `Package.swift`,
+The package name should be the same as is specified in your `Package.swift` file,
 and the path should point to your Swift project's root folder relative to your crate's root folder.
 
 ```rust
 use swift_rs::SwiftLinker;
 
 fn build() {
-	// swift-rs has a minimum of macOS 10.13
+    // swift-rs has a minimum of macOS 10.13
     // Ensure the same minimum supported macOS version is specified as in your `Package.swift` file.
     SwiftLinker::new("10.13")
         // Only if you are also targetting iOS
@@ -67,11 +74,11 @@ For this example we will use a function that simply squares a number:
 
 ```swift
 public func squareNumber(number: Int) -> Int {
-    return number * number
+	return number * number
 }
 ```
 
-So far, this function meets requirements 1 and 3: It is global and public, and only uses the Int type, which is Objective-C compatible.
+So far, this function meets requirements 1 and 3: it is global and public, and only uses the Int type, which is Objective-C compatible.
 However, it is not annotated with `@_cdecl`.
 To fix this, we must call `@_cdecl` before the function's declaration and specify the name that the function is exposed to Rust with as its only argument.
 To keep with Rust's naming conventions, we will export this function in snake case as `return_number`.
@@ -156,7 +163,7 @@ Since it is an `NSObject`, it contains extra data that must be accounted for whe
 
 This may sound daunting, but it's not actually a problem thanks to `SRObject<T>`.
 This type manages the pointer internally, and takes a generic argument for a struct that we can access the data through.
-Let's see how we'd implement `SquareNumbeResult` in Rust:
+Let's see how we'd implement `SquareNumberResult` in Rust:
 
 ```rust
 use swift_rs::{swift, Int, SRObject};
@@ -214,7 +221,7 @@ use swift_rs::{swift, Bool, SRString};
 swift!(optional_string(return_nil: Bool) -> Option<SRString>)
 ```
 
-Null pointers are actually the reason why a function that returns an optional primitives cannot be represented in C.
+Null pointers are actually the reason why a function that returns an optional primitive cannot be represented in C.
 If this were to be supported, how could a `nil` be differentiated from a number? It can't!
 
 ## Complex types
@@ -281,7 +288,7 @@ fn main() {
     let value_str: &str = &*value_srstring;
 
     // SRString also implements Display
-    println!("{}", value_ststring); // Will print "lorem ipsum" to the console
+    println!("{}", value_srstring); // Will print "lorem ipsum" to the console
 }
 ```
 
@@ -329,17 +336,14 @@ swift!(fn get_numbers() -> SRObject<IntArray>);
 fn main() {
     let numbers = unsafe { get_numbers() };
 
-    // SRArray can be accessed as a slice via as_slice...
+    // SRArray can be accessed as a slice via as_slice
     let numbers_slice: &[Int] = numbers.data.as_slice();
-
-    // Or though double deref: Once to get past SRObject, another to get past SRArray
-    let numbers_slice: &[Int] = &**numbers.data;
 
     assert_eq!(numbers_slice, &[1, 2, 3, 4]);
 }
 ```
 
-To simplify thing on the rust side, however, we can actually do away with the `IntArray` struct.
+To simplify things on the rust side, we can actually do away with the `IntArray` struct.
 Since `IntArray` only has one field, its memory layout is identical to that of `SRArray<usize>`,
 so our Rust implementation can be simplified at the cost of equivalence with our Swift code:
 
@@ -421,12 +425,12 @@ Complex types can contain whatever combination of primitives and `SRObject<T>` y
 
 ### SRData
 
-A wrapper type for `SRArray<T>` designed for storing `u8`s, essentially just a byte buffer.
+A wrapper type for `SRArray<T>` designed for storing `u8`s - essentially just a byte buffer.
 
-### Tighter Memory Control with autoreleasepool
+### Tighter Memory Control with `autoreleasepool!`
 
 If you've come to Swift from an Objective-C background, you likely know the utility of `@autoreleasepool` blocks.
-`swift_rs` has your back on this too, just wrap your block of code with a `autoreleasepool!`, and that block of code now executes with its own autorelease pool!
+`swift-rs` has your back on this too, just wrap your block of code with a `autoreleasepool!`, and that block of code now executes with its own autorelease pool!
 
 ```rust
 use swift_rs::autoreleasepool;

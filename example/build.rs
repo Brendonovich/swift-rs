@@ -1,4 +1,4 @@
-use swift_rs::build::SwiftLinker;
+use swift_rs::SwiftLinker;
 
 fn main() {
     // Ensure this matches the versions set in your `Package.swift` file.

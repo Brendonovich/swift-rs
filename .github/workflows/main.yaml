@@ -4,7 +4,6 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -27,11 +26,8 @@ jobs:
       - name: Compile
         run: cargo +${{ matrix.rust }} build
       - name: Test example
-        run: cargo +${{ matrix.rust }} test --locked --verbose --test test_example -- --ignored
-      - name: Cleanup after default build
-        run: cargo +${{ matrix.rust }} clean
-      - name: Compile with build enabled
-        run: cargo +${{ matrix.rust }} build --features build
+        working-directory: example
+        run: cargo +${{ matrix.rust }} run --locked --verbose -- --ignored
       - name: Run Tests
         env:
           TEST_SWIFT_RS: "true"

@@ -3,24 +3,45 @@ use std::{
     ops::Deref,
 };
 
-use crate::swift;
+use crate::{
+    swift::{self, SwiftObject},
+    SRData, SRObject,
+};
 
-use super::data::SRData;
-
+/// String type that can be shared between Swift and Rust.
+///
+/// ```rust
+/// use swift_rs::{swift, SRString};
+///
+/// swift!(fn get_greeting(name: &SRString) -> SRString);
+///
+/// let greeting = unsafe { get_greeting(&"Brendan".into()) };
+///
+/// assert_eq!(greeting.as_str(), "Hello Brendan!");
+/// ```
+/// [_corresponding Swift code_]()
 #[repr(transparent)]
 pub struct SRString(SRData);
+
+impl SRString {
+    pub fn as_str(&self) -> &str {
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
+    }
+}
+
+impl SwiftObject for SRString {
+    type Shape = <SRData as SwiftObject>::Shape;
+
+    fn get_object(&self) -> &SRObject<Self::Shape> {
+        self.0.get_object()
+    }
+}
 
 impl Deref for SRString {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
         self.as_str()
-    }
-}
-
-impl SRString {
-    pub fn as_str(&self) -> &str {
-        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
 

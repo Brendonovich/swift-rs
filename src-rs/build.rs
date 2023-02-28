@@ -34,7 +34,7 @@ impl SwiftEnv {
         let target = rust_target.swift_target_triple(minimum_macos_version, minimum_ios_version);
 
         let swift_target_info_str = Command::new("swift")
-            .args(&["-target", &target, "-print-target-info"])
+            .args(["-target", &target, "-print-target-info"])
             .output()
             .unwrap()
             .stdout;
@@ -43,6 +43,7 @@ impl SwiftEnv {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 enum RustTargetOS {
     MacOS,
     IOS,
@@ -74,6 +75,7 @@ impl Display for RustTargetOS {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 enum SwiftSDK {
     MacOS,
     IOS,
@@ -97,8 +99,8 @@ impl Display for SwiftSDK {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::MacOS => write!(f, "macosx"),
-            Self::IOSSimulator => write!(f, "iphoneos"),
-            Self::IOS => write!(f, "iphonesimulator"),
+            Self::IOSSimulator => write!(f, "iphonesimulator"),
+            Self::IOS => write!(f, "iphoneos"),
         }
     }
 }
@@ -155,6 +157,8 @@ struct SwiftPackage {
     path: PathBuf,
 }
 
+/// Builder for linking the Swift runtime and custom packages.
+#[cfg(feature = "build")]
 pub struct SwiftLinker {
     packages: Vec<SwiftPackage>,
     macos_min_version: String,
@@ -162,6 +166,9 @@ pub struct SwiftLinker {
 }
 
 impl SwiftLinker {
+    /// Creates a new [`SwiftLinker`] with a minimum macOS verison.
+    ///
+    /// Minimum macOS version must be at least 10.13.
     pub fn new(macos_min_version: &str) -> Self {
         Self {
             packages: vec![],
@@ -170,11 +177,19 @@ impl SwiftLinker {
         }
     }
 
+    /// Instructs the [`SwiftLinker`] to also compile for iOS
+    /// using the specified minimum iOS version.
+    ///
+    /// Minimum iOS version must be at least 11.
     pub fn with_ios(mut self, min_version: &str) -> Self {
         self.ios_min_version = Some(min_version.to_string());
         self
     }
 
+    /// Adds a package to be linked against.
+    /// `name` should match the `name` field in your `Package.swift`,
+    /// and `path` should point to the root of your Swift package relative
+    /// to your crate's root.
     pub fn with_package(mut self, name: &str, path: impl AsRef<Path>) -> Self {
         self.packages.extend([SwiftPackage {
             name: name.to_string(),
@@ -184,19 +199,20 @@ impl SwiftLinker {
         self
     }
 
+    /// Links the Swift runtime, then builds and links the provided packages.
+    /// This does not (yet) automatically rebuild your Swift files when they are modified,
+    /// you'll need to modify/save your `build.rs` file for that.
     pub fn link(self) {
-        let swift_env = SwiftEnv::new(
-            &self.macos_min_version,
-            self.ios_min_version.as_ref().map(|v| v.as_str()),
-        );
+        let swift_env = SwiftEnv::new(&self.macos_min_version, self.ios_min_version.as_deref());
 
+        #[allow(clippy::uninlined_format_args)]
         for path in swift_env.paths.runtime_library_paths {
-            println!("cargo:rustc-link-search=native={}", path);
+            println!("cargo:rustc-link-search=native={path}");
         }
 
-        let profile = env::var("PROFILE").unwrap();
+        let debug = env::var("DEBUG").unwrap() == "true";
+        let configuration = if debug { "debug" } else { "release" };
         let rust_target = RustTarget::from_env();
-        let swift_sdk = SwiftSDK::from_os(&rust_target.os);
 
         for package in self.packages {
             let package_path =
@@ -204,18 +220,18 @@ impl SwiftLinker {
 
             let mut command = Command::new("swift");
             command
-                .args(&["build", "-c", &profile])
+                .args(["build", "-c", configuration])
                 .current_dir(&package.path);
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
                 let sdk_path_output = Command::new("xcrun")
-                    .args(["--sdk", &swift_sdk.to_string(), "--show-sdk-path"])
+                    .args(["--sdk", &rust_target.sdk.to_string(), "--show-sdk-path"])
                     .output()
                     .unwrap();
                 if !sdk_path_output.status.success() {
                     panic!(
                         "Failed to get SDK path with `xcrun --sdk {} --show-sdk-path`",
-                        swift_sdk.to_string()
+                        rust_target.sdk
                     );
                 }
 
@@ -225,13 +241,13 @@ impl SwiftLinker {
                     "-Xswiftc",
                     "-sdk",
                     "-Xswiftc",
-                    &sdk_path.trim(),
+                    sdk_path.trim(),
                     "-Xswiftc",
                     "-target",
                     "-Xswiftc",
                     &rust_target.swift_target_triple(
                         &self.macos_min_version,
-                        self.ios_min_version.as_ref().map(|v| v.as_str()),
+                        self.ios_min_version.as_deref(),
                     ),
                 ]);
             }
@@ -240,11 +256,17 @@ impl SwiftLinker {
                 panic!("Failed to compile swift package {}", package.name);
             }
 
-            let unversioned_triple = rust_target.unversioned_swift_target_triple();
             let search_path = package_path
                 .join(".build")
-                .join(unversioned_triple)
-                .join(&profile);
+                // swift build uses this output folder no matter what is the target
+                .join(format!(
+                    "{}-apple-macosx",
+                    match std::env::consts::ARCH {
+                        "aarch64" => "arm64",
+                        arch => arch,
+                    }
+                ))
+                .join(configuration);
 
             // TODO: fix
             // println!(

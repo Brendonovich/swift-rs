@@ -1,8 +1,8 @@
 /// Run code with its own autorelease pool. Semantically, this is identical
-/// to [@autoreleasepool](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/MemoryMgmt/Articles/mmAutoreleasePools.html)
+/// to [`@autoreleasepool`](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/MemoryMgmt/Articles/mmAutoreleasePools.html)
 /// in Objective-C
 ///
-/// Usage:
+///
 /// ```no_run
 /// use swift_rs::autoreleasepool;
 ///

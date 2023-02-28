@@ -1,6 +1,9 @@
 use crate::{swift::SwiftObject, *};
 use std::ffi::c_void;
 
+/// Identifies a type as being a valid return type from a Swift function.
+/// For types that are objects which need extra retains,
+/// the [`retain`](SwiftRet::retain) function will be re-implemented.
 pub trait SwiftRet {
     /// Adds a retain to the value if possible
     ///

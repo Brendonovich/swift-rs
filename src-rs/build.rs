@@ -157,6 +157,8 @@ struct SwiftPackage {
     path: PathBuf,
 }
 
+/// Builder for linking the Swift runtime and custom packages.
+#[cfg(feature = "build")]
 pub struct SwiftLinker {
     packages: Vec<SwiftPackage>,
     macos_min_version: String,

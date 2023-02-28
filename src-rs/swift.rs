@@ -2,6 +2,7 @@ use std::ffi::c_void;
 
 use crate::*;
 
+/// Reference to an `NSObject` for internal use by [`swift!`].
 #[must_use = "A Ref MUST be sent over to the Swift side"]
 #[repr(transparent)]
 pub struct SwiftRef<'a, T: SwiftObject>(&'a SRObjectImpl<T::Shape>);
@@ -12,6 +13,7 @@ impl<'a, T: SwiftObject> SwiftRef<'a, T> {
     }
 }
 
+/// A type that is represented as an `NSObject` in Swift.
 pub trait SwiftObject {
     type Shape;
 
@@ -53,32 +55,29 @@ swift!(pub(crate) fn release_object(obj: *const c_void));
 swift!(pub(crate) fn allocate_string(data: *const u8, size: UInt) -> SRString);
 
 /// Declares a function defined in a swift library.
+/// As long as this macro is used, retain counts of arguments
+/// and return values will be correct.
+///
 /// Use this macro as if the contents were going directly
 /// into an `extern "C"` block.
 ///
-///
-/// # Examples
-///
-/// ```ignore
+/// ```
 /// use swift_rs::*;
 ///
 /// swift!(fn echo(string: &SRString) -> SRString);
 ///
-/// fn main() {
-///     let string: SRString = "test".into();
-///     let result = unsafe { echo(&string) };
+/// let string: SRString = "test".into();
+/// let result = unsafe { echo(&string) };
 ///
-///     assert_eq!(result.as_str(), string.as_str())
-/// }
-///
+/// assert_eq!(result.as_str(), string.as_str())
 /// ```
 ///
 /// # Details
 ///
-/// Internally, this macro creates an `unsafe` function containing
-/// an `extern "C"` block declaring the actual swift function,
-/// conversion of arguments implementing [`SwiftObject`] to [`SwiftRef`],
-/// and finally a call to the swift function.
+/// Internally this macro creates a wrapping function around an `extern "C"` block
+/// that represents the actual Swift function. This is done in order to restrict the types
+/// that can be used as arguments and return types, and to ensure that retain counts of returned
+/// values are appropriately balanced.
 #[macro_export]
 macro_rules! swift {
     ($vis:vis fn $name:ident $(<$($lt:lifetime),+>)? ($($arg:ident: $arg_ty:ty),*) $(-> $ret:ty)?) => {

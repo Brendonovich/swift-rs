@@ -53,9 +53,9 @@ macro_rules! test_with_leaks {
 #[serial]
 fn test_string() {
     test_with_leaks!(|| {
-        let name: SRString = "Bond".into();
+        let name: SRString = "Brendan".into();
         let greeting = unsafe { get_greeting(&name) };
-        assert_eq!(greeting.as_str(), "Hello Bond");
+        assert_eq!(greeting.as_str(), "Hello Brendan!");
     });
 }
 
@@ -64,9 +64,9 @@ fn test_string() {
 fn test_reflection() {
     test_with_leaks!(|| {
         // create memory pressure
-        let name: SRString = "Bond".into();
+        let name: SRString = "Brendan".into();
         for _ in 0..10_000 {
-            let reflected = unsafe { reflect_string(&name) };
+            let reflected = unsafe { echo(&name) };
             assert_eq!(name.as_str(), reflected.as_str());
         }
     });
@@ -77,10 +77,10 @@ fn test_reflection() {
 fn test_memory_pressure() {
     test_with_leaks!(|| {
         // create memory pressure
-        let name: SRString = "Bond".into();
+        let name: SRString = "Brendan".into();
         for _ in 0..10_000 {
             let greeting = unsafe { get_greeting(&name) };
-            assert_eq!(greeting.as_str(), "Hello Bond");
+            assert_eq!(greeting.as_str(), "Hello Brendan!");
         }
     });
 }
@@ -90,11 +90,11 @@ fn test_memory_pressure() {
 fn test_autoreleasepool() {
     test_with_leaks!(|| {
         // create memory pressure
-        let name: SRString = "Bond".into();
+        let name: SRString = "Brendan".into();
         for _ in 0..10_000 {
             autoreleasepool!({
                 let greeting = unsafe { get_greeting(&name) };
-                assert_eq!(greeting.as_str(), "Hello Bond");
+                assert_eq!(greeting.as_str(), "Hello Brendan!");
             });
         }
     });
@@ -115,7 +115,7 @@ fn test_complex() {
 }
 
 swift!(fn get_greeting(name: &SRString) -> SRString);
-swift!(fn reflect_string(string: &SRString) -> SRString);
+swift!(fn echo(string: &SRString) -> SRString);
 
 #[repr(C)]
 struct Complex {

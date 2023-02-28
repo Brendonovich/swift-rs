@@ -2,6 +2,7 @@ use std::ffi::c_void;
 
 use crate::{swift::SwiftObject, *};
 
+/// Identifies a type as being a valid argument in a Swift function.
 pub trait SwiftArg<'a> {
     type ArgType;
 

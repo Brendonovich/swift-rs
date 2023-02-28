@@ -50,7 +50,7 @@ public class SRString: SRData {
         super.init(Array(string.utf8))
     }
 
-    public func to_string() -> String {
+    public func toString() -> String {
         return String(bytes: self.data.array, encoding: .utf8)!
     }
 }

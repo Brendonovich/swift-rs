@@ -6,6 +6,19 @@ use std::ops::Deref;
 
 type Data = SRArray<u8>;
 
+/// Convenience type for working with byte buffers,
+/// analagous to `SRData` in Swift.
+///
+/// ```rust
+/// use swift_rs::{swift, SRData};
+///
+/// swift!(fn get_data() -> SRData);
+///
+/// let data = unsafe { get_data() };
+///
+/// assert_eq!(data.as_ref(), &[1, 2, 3])
+/// ```
+/// [_corresponding Swift code_]()
 #[repr(transparent)]
 pub struct SRData(SRObject<Data>);
 

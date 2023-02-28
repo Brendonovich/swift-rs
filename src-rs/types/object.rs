@@ -1,12 +1,35 @@
 use crate::swift::{self, SwiftObject};
 use std::{ffi::c_void, ops::Deref, ptr::NonNull};
 
+#[doc(hidden)]
 #[repr(C)]
 pub struct SRObjectImpl<T> {
     _nsobject_offset: u8,
     data: T,
 }
 
+/// Wrapper for arbitrary `NSObject` types.
+///
+/// When returning an `NSObject`, its Rust type must be wrapped in `SRObject`.
+/// The type must also be annotated with `#[repr(C)]` to ensure its memory layout
+/// is identical to its Swift counterpart's.
+///
+/// ```rust
+/// use swift_rs::{swift, SRObject, Int, Bool};
+///
+/// #[repr(C)]
+/// struct CustomObject {
+///     a: Int,
+///     b: Bool
+/// }
+///
+/// swift!(fn get_custom_object() -> SRObject<CustomObject>);
+///
+/// let value = unsafe { get_custom_object() };
+///
+/// let reference: &CustomObject = value.as_ref();
+/// ```
+/// [_corresponding Swift code_]()
 #[repr(transparent)]
 pub struct SRObject<T>(pub(crate) NonNull<SRObjectImpl<T>>);
 

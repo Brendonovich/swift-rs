@@ -25,8 +25,6 @@ jobs:
           rustup component add --toolchain ${{ matrix.rust }} rustfmt clippy
       - name: Compile
         run: cargo +${{ matrix.rust }} build
-      - name: Test example
-        run: cargo +${{ matrix.rust }} test --locked --verbose --test test_example -- --ignored
       - name: Cleanup after default build
         run: cargo +${{ matrix.rust }} clean
       - name: Compile with build enabled

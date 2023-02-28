@@ -25,7 +25,7 @@ This can be done in XCode by selecting File -> New -> Project -> Multiplatform -
 ```swift
 let package = Package(
     dependencies: [
-        .package(name: "SwiftRs", git = "https://github.com/Brendonovich/swift-rs", from = "1.0.0")
+        .package(name: "SwiftRs", url: "https://github.com/Brendonovich/swift-rs", from: "1.0.0")
     ],
     .. // other configuration
 )

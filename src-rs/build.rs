@@ -166,6 +166,7 @@ pub struct SwiftLinker {
 }
 
 impl SwiftLinker {
+    /// Creates a new [`SwiftLinker`] with a minimum macOS verison.
     pub fn new(macos_min_version: &str) -> Self {
         Self {
             packages: vec![],
@@ -174,11 +175,17 @@ impl SwiftLinker {
         }
     }
 
+    /// Instructs the [`SwiftLinker`] to also compile for iOS
+    /// using the specified minimum iOS version.
     pub fn with_ios(mut self, min_version: &str) -> Self {
         self.ios_min_version = Some(min_version.to_string());
         self
     }
 
+    /// Adds a package to be linked against.
+    /// `name` should match the `name` field in your `Package.swift`,
+    /// and `path` should point to the root of your Swift package relative
+    /// to your crate's root.
     pub fn with_package(mut self, name: &str, path: impl AsRef<Path>) -> Self {
         self.packages.extend([SwiftPackage {
             name: name.to_string(),
@@ -188,6 +195,9 @@ impl SwiftLinker {
         self
     }
 
+    /// Links the Swift runtime, then builds and links the provided packages.
+    /// This does not (yet) automatically rebuild your Swift files when they are modified,
+    /// you'll need to modify/save your `build.rs` file for that.
     pub fn link(self) {
         let swift_env = SwiftEnv::new(&self.macos_min_version, self.ios_min_version.as_deref());
 

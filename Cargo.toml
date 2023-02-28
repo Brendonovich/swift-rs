@@ -1,11 +1,11 @@
 [package]
 name = "swift-rs"
-version = "0.3.0"
+version = "1.0.0"
 description = "Call Swift from Rust with ease!"
-authors = ["you"]
+authors = ["The swift-rs contributors"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Brendonovich/swift-rs"
-edition = "2018"
+edition = "2021"
 exclude=["/src-swift", "*.swift"]
 build = "src-rs/test-build.rs"
 

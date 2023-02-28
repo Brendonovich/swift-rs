@@ -12,10 +12,10 @@ Add `swift-rs` to your project's `dependencies` and `build-dependencies`:
 
 ```toml
 [dependencies]
-swift-rs = "0.3.0"
+swift-rs = "1.0.0"
 
 [build-dependencies]
-swift-rs = { version = "0.3.0", features = ["build"] }
+swift-rs = { version = "1.0.0", features = ["build"] }
 ```
 
 Next, some setup work must be done:

@@ -1,7 +1,7 @@
 # swift-rs
 
-[![Current Crates.io Version](https://img.shields.io/crates/v/swift-rs.svg)](https://crates.io/crates/swift-rs)
-![Build](https://github.com/Brendonovich/swift-rs/workflows/Build/badge.svg?branch=master)
+![Crates.io](https://img.shields.io/crates/v/swift-rs?color=blue&style=flat-square)
+![docs.rs](https://img.shields.io/docsrs/swift-rs?color=blue&style=flat-square)
 
 Call Swift functions from Rust with ease!
 

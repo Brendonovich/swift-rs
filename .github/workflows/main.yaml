@@ -23,18 +23,16 @@ jobs:
         run: |
           rustup install ${{ matrix.rust }} --profile minimal
           rustup component add --toolchain ${{ matrix.rust }} rustfmt clippy
-      - name: Compile
-        run: cargo +${{ matrix.rust }} build
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
       - name: Test example
         working-directory: example
-        run: cargo +${{ matrix.rust }} run --locked --verbose -- --ignored
+        run: cargo +${{ matrix.rust }} run
       - name: Run Tests
         env:
           TEST_SWIFT_RS: "true"
-        run: cargo +${{ matrix.rust }} test --features build --locked --verbose
+        run: cargo +${{ matrix.rust }} test --features build
       - name: Check Code Formatting
-        if: ${{ matrix.rust == 'stable' || matrix.rust == 'beta' }}
         run: cargo +${{ matrix.rust }} fmt --all -- --check
       - name: Lints
-        if: ${{ matrix.rust == 'stable' || matrix.rust == 'beta' }}
-        run: cargo +${{ matrix.rust }} clippy --all-targets -- -D warnings
+        run: cargo +${{ matrix.rust }} clippy -- -D warnings

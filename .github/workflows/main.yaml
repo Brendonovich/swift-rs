@@ -27,11 +27,11 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Test example
         working-directory: example
-        run: cargo +${{ matrix.rust }} run --locked
+        run: cargo +${{ matrix.rust }} run
       - name: Run Tests
         env:
           TEST_SWIFT_RS: "true"
-        run: cargo +${{ matrix.rust }} test --features build --locked
+        run: cargo +${{ matrix.rust }} test --features build
       - name: Check Code Formatting
         run: cargo +${{ matrix.rust }} fmt --all -- --check
       - name: Lints

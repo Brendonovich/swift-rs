@@ -217,11 +217,15 @@ impl SwiftLinker {
         for package in self.packages {
             let package_path =
                 Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join(&package.path);
+            let out_path = Path::new(&env::var("OUT_DIR").unwrap())
+                .join("swift-rs")
+                .join(&package.name);
 
             let mut command = Command::new("swift");
             command
                 .args(["build", "-c", configuration])
-                .current_dir(&package.path);
+                .current_dir(&package.path)
+                .args(["--scratch-path", &out_path.display().to_string()]);
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
                 let sdk_path_output = Command::new("xcrun")
@@ -256,8 +260,7 @@ impl SwiftLinker {
                 panic!("Failed to compile swift package {}", package.name);
             }
 
-            let search_path = package_path
-                .join(".build")
+            let search_path = out_path
                 // swift build uses this output folder no matter what is the target
                 .join(format!(
                     "{}-apple-macosx",

@@ -271,11 +271,7 @@ impl SwiftLinker {
                 ))
                 .join(configuration);
 
-            // TODO: fix
-            // println!(
-            //     "cargo:rerun-if-changed={}",
-            //     package_path.join("Sources").display()
-            // );
+            println!("cargo:rerun-if-changed={}", package_path.display());
             println!("cargo:rustc-link-search=native={}", search_path.display());
             println!("cargo:rustc-link-lib=static={}", package.name);
         }

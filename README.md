@@ -81,7 +81,7 @@ public func squareNumber(number: Int) -> Int {
 So far, this function meets requirements 1 and 3: it is global and public, and only uses the Int type, which is Objective-C compatible.
 However, it is not annotated with `@_cdecl`.
 To fix this, we must call `@_cdecl` before the function's declaration and specify the name that the function is exposed to Rust with as its only argument.
-To keep with Rust's naming conventions, we will export this function in snake case as `return_number`.
+To keep with Rust's naming conventions, we will export this function in snake case as `square_number`.
 
 ```swift
 @_cdecl("square_number")
@@ -90,7 +90,7 @@ public func squareNumber(number: Int) -> Int {
 }
 ```
 
-Now that `returnNumber` is properly exposed to Rust, we can start interfacing with it.
+Now that `squareNumber` is properly exposed to Rust, we can start interfacing with it.
 This can be done using the `swift!` macro, with the `Int` type helping to provide a similar function signature:
 
 ```rust

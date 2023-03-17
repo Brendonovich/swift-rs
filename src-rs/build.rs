@@ -64,6 +64,13 @@ impl RustTargetOS {
             Self::IOS => "ios",
         }
     }
+
+    fn clang_lib_extension(&self) -> &'static str {
+        match self {
+            Self::MacOS => "osx",
+            Self::IOS => "ios",
+        }
+    }
 }
 
 impl Display for RustTargetOS {
@@ -214,6 +221,8 @@ impl SwiftLinker {
         let configuration = if debug { "debug" } else { "release" };
         let rust_target = RustTarget::from_env();
 
+        link_clang_rt(&rust_target);
+
         for package in self.packages {
             let package_path =
                 Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join(&package.path);
@@ -276,4 +285,30 @@ impl SwiftLinker {
             println!("cargo:rustc-link-lib=static={}", package.name);
         }
     }
+}
+
+fn link_clang_rt(rust_target: &RustTarget) {
+    println!(
+        "cargo:rustc-link-lib=clang_rt.{}",
+        rust_target.os.clang_lib_extension()
+    );
+    println!("cargo:rustc-link-search={}", clang_link_search_path());
+}
+
+fn clang_link_search_path() -> String {
+    let output = std::process::Command::new("clang")
+        .arg("--print-search-dirs")
+        .output()
+        .unwrap();
+    if !output.status.success() {
+        panic!("Can't get search paths from clang");
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for line in stdout.lines() {
+        if line.contains("libraries: =") {
+            let path = line.split('=').nth(1).unwrap();
+            return format!("{}/lib/darwin", path);
+        }
+    }
+    panic!("clang is missing search paths");
 }

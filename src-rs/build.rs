@@ -64,13 +64,6 @@ impl RustTargetOS {
             Self::IOS => "ios",
         }
     }
-
-    fn clang_lib_extension(&self) -> &'static str {
-        match self {
-            Self::MacOS => "osx",
-            Self::IOS => "ios",
-        }
-    }
 }
 
 impl Display for RustTargetOS {
@@ -98,6 +91,14 @@ impl SwiftSDK {
             RustTargetOS::MacOS => Self::MacOS,
             RustTargetOS::IOS if simulator => Self::IOSSimulator,
             RustTargetOS::IOS => Self::IOS,
+        }
+    }
+
+    fn clang_lib_extension(&self) -> &'static str {
+        match self {
+            Self::MacOS => "osx",
+            Self::IOS => "ios",
+            Self::IOSSimulator => "iossim",
         }
     }
 }
@@ -290,7 +291,7 @@ impl SwiftLinker {
 fn link_clang_rt(rust_target: &RustTarget) {
     println!(
         "cargo:rustc-link-lib=clang_rt.{}",
-        rust_target.os.clang_lib_extension()
+        rust_target.sdk.clang_lib_extension()
     );
     println!("cargo:rustc-link-search={}", clang_link_search_path());
 }

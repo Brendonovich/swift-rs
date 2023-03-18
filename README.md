@@ -11,10 +11,10 @@ Add `swift-rs` to your project's `dependencies` and `build-dependencies`:
 
 ```toml
 [dependencies]
-swift-rs = "1.0.2"
+swift-rs = "1.0.3"
 
 [build-dependencies]
-swift-rs = { version = "1.0.2", features = ["build"] }
+swift-rs = { version = "1.0.3", features = ["build"] }
 ```
 
 Next, some setup work must be done:
@@ -25,7 +25,7 @@ This can be done in XCode by selecting File -> New -> Project -> Multiplatform -
 ```swift
 let package = Package(
     dependencies: [
-        .package(name: "SwiftRs", url: "https://github.com/Brendonovich/swift-rs", from: "1.0.2")
+        .package(name: "SwiftRs", url: "https://github.com/Brendonovich/swift-rs", from: "1.0.3")
     ],
     .. // other configuration
 )

@@ -85,7 +85,8 @@ enum SwiftSDK {
 impl SwiftSDK {
     fn from_os(os: &RustTargetOS) -> Self {
         let target = env::var("TARGET").unwrap();
-        let simulator = target.ends_with("ios-sim");
+        let simulator = target.ends_with("ios-sim")
+            || (target.starts_with("x86_64") && target.ends_with("ios"));
 
         match os {
             RustTargetOS::MacOS => Self::MacOS,

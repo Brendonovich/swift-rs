@@ -30,7 +30,7 @@ let package = Package(
     products: [
         .library(
             type: .static,
-			.. // other configuration
+	    .. // other configuration
         ),
     ],
     .. // other configuration

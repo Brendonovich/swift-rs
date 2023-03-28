@@ -21,11 +21,17 @@ Next, some setup work must be done:
 
 1. Ensure your swift code is organized into a Swift Package.
 This can be done in XCode by selecting File -> New -> Project -> Multiplatform -> Swift Package and importing your existing code.
-2. Add `SwiftRs` as a dependency to your Swift package.
+2. Add `SwiftRs` as a dependency to your Swift package and make the build type `.static`.
 ```swift
 let package = Package(
     dependencies: [
         .package(name: "SwiftRs", url: "https://github.com/Brendonovich/swift-rs", from: "1.0.3")
+    ],
+    products: [
+        .library(
+            type: .static,
+			.. // other configuration
+        ),
     ],
     .. // other configuration
 )

@@ -1,8 +1,8 @@
-import SwiftRs
 import Foundation
+import SwiftRs
 
 // SRArray
-// 
+//
 // Notice that IntArray and ArrayStruct are almost identical!
 // The only actual difference between these types is how they're used in Rust,
 // but if you added more fields to ArrayStruct then that wouldn't be the case anymore.
@@ -67,4 +67,9 @@ func echo(string: SRString) -> SRString {
 @_cdecl("get_data")
 func getData() -> SRData {
     return SRData([1, 2, 3])
+}
+
+@_cdecl("send_and_get_data")
+func sendAndGetData(data: SRData) -> SRData {
+    return SRData(data.array())
 }

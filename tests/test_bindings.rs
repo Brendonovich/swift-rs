@@ -114,6 +114,26 @@ fn test_complex() {
     });
 }
 
+#[test]
+#[serial]
+fn test_data() {
+    test_with_leaks!(|| {
+        let mut v = vec![];
+
+        let str: &str = "hello";
+        let bytes: Vec<u8> = str.as_bytes().to_vec();
+        for _ in 0..10_000 {
+            let swift_byte: SRData = SRData::from(&bytes);
+            let data = unsafe { send_and_get_data(swift_byte) };
+            assert_eq!(
+                data.as_array().as_slice(),
+                SRData::from(&bytes).as_array().as_slice()
+            );
+            v.push(data);
+        }
+    });
+}
+
 swift!(fn get_greeting(name: &SRString) -> SRString);
 swift!(fn echo(string: &SRString) -> SRString);
 
@@ -125,6 +145,7 @@ struct Complex {
 }
 
 swift!(fn complex_data() -> SRObjectArray<Complex>);
+swift!(fn send_and_get_data(data: SRData) -> SRData);
 
 const DEBUG_PLIST_XML: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">

@@ -53,6 +53,7 @@ pub trait SwiftObject {
 swift!(pub(crate) fn retain_object(obj: *const c_void));
 swift!(pub(crate) fn release_object(obj: *const c_void));
 swift!(pub(crate) fn allocate_string(data: *const u8, size: UInt) -> SRString);
+swift!(pub(crate) fn allocate_data(data: *const u8, size: UInt) -> SRData);
 
 /// Declares a function defined in a swift library.
 /// As long as this macro is used, retain counts of arguments

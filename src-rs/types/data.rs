@@ -50,10 +50,14 @@ impl AsRef<[u8]> for SRData {
     }
 }
 
-impl From<&Vec<u8>> for SRData {
-    fn from(value: &Vec<u8>) -> SRData {
-        let data = value.as_slice();
-        unsafe { swift::allocate_data(data.as_ptr(), data.len()) }
+// Using a reference would allow the owner to drop while the bytes are still being used in SRData -
+// that would be bad!
+impl From<Vec<u8>> for SRData {
+    fn from(value: Vec<u8>) -> SRData {
+        let data = unsafe { swift::data_from_bytes(value.as_ptr(), value.len()) };
+        // We don't want the data to be dropped by Rust!
+        std::mem::forget(value);
+        data
     }
 }
 

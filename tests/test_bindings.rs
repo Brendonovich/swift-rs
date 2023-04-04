@@ -118,18 +118,13 @@ fn test_complex() {
 #[serial]
 fn test_data() {
     test_with_leaks!(|| {
-        let mut v = vec![];
-
         let str: &str = "hello";
         let bytes: Vec<u8> = str.as_bytes().to_vec();
+
         for _ in 0..10_000 {
-            let swift_byte: SRData = SRData::from(&bytes);
+            let swift_byte: SRData = SRData::from(bytes.clone());
             let data = unsafe { send_and_get_data(swift_byte) };
-            assert_eq!(
-                data.as_array().as_slice(),
-                SRData::from(&bytes).as_array().as_slice()
-            );
-            v.push(data);
+            assert_eq!(data.as_array().as_slice(), bytes.as_slice());
         }
     });
 }

@@ -51,9 +51,12 @@ impl AsRef<[u8]> for SRString {
     }
 }
 
+// TODO: This really ought to be changed to From<String>. If the owner of the &str is dropped then
+// the SRString's underlying data will be effecively rug-pulled and break.
 impl From<&str> for SRString {
-    fn from(string: &str) -> SRString {
-        unsafe { swift::allocate_string(string.as_ptr(), string.len()) }
+    fn from(string: &str) -> Self {
+        let data = unsafe { swift::data_from_bytes(string.as_ptr(), string.len()) };
+        Self(data)
     }
 }
 

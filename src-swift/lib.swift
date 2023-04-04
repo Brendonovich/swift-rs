@@ -39,6 +39,10 @@ public class SRData: NSObject {
     public init(_ data: [UInt8]) {
         self.data = SRArray(data)
     }
+    
+    public init(srArray: SRArray<UInt8>) {
+        self.data = srArray
+    }
 
     public func array() -> [UInt8]{
         return self.data.array
@@ -53,17 +57,14 @@ public class SRString: SRData {
     public init(_ string: String) {
         super.init(Array(string.utf8))
     }
+    
+    public init(data: SRData) {
+        super.init(srArray: data.data)
+    }
 
     public func toString() -> String {
         return String(bytes: self.data.array, encoding: .utf8)!
     }
-}
-
-@_cdecl("allocate_string")
-func allocateString(data: UnsafePointer<UInt8>, size: Int) -> SRString {
-    let buffer = UnsafeBufferPointer(start: data, count: size)
-    let string = String(bytes: buffer, encoding: .utf8)!
-    return SRString(string)
 }
 
 @_cdecl("retain_object")
@@ -76,9 +77,8 @@ func releaseObject(ptr: UnsafeMutableRawPointer) {
     let _ = Unmanaged<AnyObject>.fromOpaque(ptr).release()
 }
 
-@_cdecl("allocate_data")
-func allocateData(data: UnsafePointer<UInt8>, size: Int) -> SRData {
+@_cdecl("data_from_bytes")
+func dataFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRData {
     let bufferPointer = UnsafeRawBufferPointer(start: data, count: size)
-    let newData: [UInt8] = Array(bufferPointer)
-    return SRData(newData)
+    return SRData(Array(bufferPointer))
 }

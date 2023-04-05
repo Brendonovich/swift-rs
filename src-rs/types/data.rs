@@ -21,13 +21,18 @@ type Data = SRArray<u8>;
 ///
 /// assert_eq!(data.as_ref(), &[1, 2, 3])
 /// ```
-/// [_corresponding Swift code_]()
+/// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L68)
 #[repr(transparent)]
 pub struct SRData(SRObject<Data>);
 
 impl SRData {
+    ///
     pub fn as_slice(&self) -> &[u8] {
         self
+    }
+
+    pub fn to_vec(&self) -> Vec<u8> {
+        self.as_slice().to_vec()
     }
 }
 

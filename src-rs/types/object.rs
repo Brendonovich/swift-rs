@@ -29,7 +29,7 @@ pub struct SRObjectImpl<T> {
 ///
 /// let reference: &CustomObject = value.as_ref();
 /// ```
-/// [_corresponding Swift code_]()
+/// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L49)
 #[repr(transparent)]
 pub struct SRObject<T>(pub(crate) NonNull<SRObjectImpl<T>>);
 

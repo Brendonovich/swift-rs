@@ -35,7 +35,7 @@ pub struct SRArrayImpl<T> {
 ///
 /// assert_eq!(array.as_slice(), &[1, 2, 3])
 /// ```
-/// [_corresponding Swift code_]()
+/// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L19)
 ///
 /// ## Returning in a Struct fIeld
 ///
@@ -58,7 +58,7 @@ pub struct SRArrayImpl<T> {
 ///
 /// assert_eq!(data.array.as_slice(), &[4, 5, 6]);
 /// ```
-/// [_corresponding Swift code_]()
+/// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L32)
 #[repr(transparent)]
 pub struct SRArray<T>(SRObject<SRArrayImpl<T>>);
 

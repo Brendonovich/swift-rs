@@ -23,7 +23,7 @@ func complexData() -> SRObjectArray {
     ])
 }
 
-@_cdecl("reflect_data")
-func reflectData(input: SRData) -> SRData {
-    return SRData(input.toArray())
+@_cdecl("echo_data")
+func echoData(data: SRData) -> SRData {
+    return SRData(data.toArray())
 }

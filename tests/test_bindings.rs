@@ -127,7 +127,7 @@ fn test_complex() {
     });
 }
 
-swift!(fn send_and_get_data(data: &SRData) -> SRData);
+swift!(fn echo_data(data: &SRData) -> SRData);
 
 #[test]
 #[serial]
@@ -136,7 +136,7 @@ fn test_data() {
         let str: &str = "hello";
         let bytes = &str.as_bytes().to_vec();
         for _ in 0..10_000 {
-            let data = unsafe { send_and_get_data(&bytes.into()) };
+            let data = unsafe { echo_data(&bytes.into()) };
             assert_eq!(data.as_slice(), bytes);
         }
     });

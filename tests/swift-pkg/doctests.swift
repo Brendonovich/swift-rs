@@ -68,8 +68,3 @@ func echo(string: SRString) -> SRString {
 func getData() -> SRData {
     return SRData([1, 2, 3])
 }
-
-@_cdecl("send_and_get_data")
-func sendAndGetData(data: SRData) -> SRData {
-    return SRData(data.toArray())
-}

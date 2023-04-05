@@ -71,5 +71,5 @@ func getData() -> SRData {
 
 @_cdecl("send_and_get_data")
 func sendAndGetData(data: SRData) -> SRData {
-    return SRData(data.array())
+    return SRData(data.toArray())
 }

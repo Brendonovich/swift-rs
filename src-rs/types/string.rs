@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     swift::{self, SwiftObject},
-    SRData, SRObject,
+    Int, SRData, SRObject,
 };
 
 /// String type that can be shared between Swift and Rust.
@@ -52,8 +52,8 @@ impl AsRef<[u8]> for SRString {
 }
 
 impl From<&str> for SRString {
-    fn from(string: &str) -> SRString {
-        unsafe { swift::allocate_string(string.as_ptr(), string.len()) }
+    fn from(string: &str) -> Self {
+        unsafe { swift::string_from_bytes(string.as_ptr(), string.len() as Int) }
     }
 }
 

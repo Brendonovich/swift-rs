@@ -22,3 +22,8 @@ func complexData() -> SRObjectArray {
         Complex(a: SRString("Oscar"), b: 3, c: false),
     ])
 }
+
+@_cdecl("reflect_data")
+func reflectData(input: SRData) -> SRData {
+    return SRData(input.toArray())
+}

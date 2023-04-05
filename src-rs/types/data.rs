@@ -1,4 +1,7 @@
-use crate::swift::{self, SwiftObject};
+use crate::{
+    swift::{self, SwiftObject},
+    Int,
+};
 
 use super::{array::SRArray, SRObject};
 
@@ -23,8 +26,8 @@ type Data = SRArray<u8>;
 pub struct SRData(SRObject<Data>);
 
 impl SRData {
-    pub fn as_array(&self) -> Vec<u8> {
-        self.0.as_ref().to_vec()
+    pub fn as_slice(&self) -> &[u8] {
+        self
     }
 }
 
@@ -51,9 +54,8 @@ impl AsRef<[u8]> for SRData {
 }
 
 impl From<&Vec<u8>> for SRData {
-    fn from(value: &Vec<u8>) -> SRData {
-        let data = value.as_slice();
-        unsafe { swift::allocate_data(data.as_ptr(), data.len()) }
+    fn from(value: &Vec<u8>) -> Self {
+        unsafe { swift::data_from_bytes(value.as_ptr(), value.len() as Int) }
     }
 }
 

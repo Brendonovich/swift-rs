@@ -49,15 +49,7 @@ macro_rules! test_with_leaks {
     }};
 }
 
-#[test]
-#[serial]
-fn test_string() {
-    test_with_leaks!(|| {
-        let name: SRString = "Brendan".into();
-        let greeting = unsafe { get_greeting(&name) };
-        assert_eq!(greeting.as_str(), "Hello Brendan!");
-    });
-}
+swift!(fn echo(string: &SRString) -> SRString);
 
 #[test]
 #[serial]
@@ -69,6 +61,18 @@ fn test_reflection() {
             let reflected = unsafe { echo(&name) };
             assert_eq!(name.as_str(), reflected.as_str());
         }
+    });
+}
+
+swift!(fn get_greeting(name: &SRString) -> SRString);
+
+#[test]
+#[serial]
+fn test_string() {
+    test_with_leaks!(|| {
+        let name: SRString = "Brendan".into();
+        let greeting = unsafe { get_greeting(&name) };
+        assert_eq!(greeting.as_str(), "Hello Brendan!");
     });
 }
 
@@ -100,6 +104,15 @@ fn test_autoreleasepool() {
     });
 }
 
+#[repr(C)]
+struct Complex {
+    a: SRString,
+    b: Int,
+    c: Bool,
+}
+
+swift!(fn complex_data() -> SRObjectArray<Complex>);
+
 #[test]
 #[serial]
 fn test_complex() {
@@ -114,38 +127,20 @@ fn test_complex() {
     });
 }
 
+swift!(fn send_and_get_data(data: &SRData) -> SRData);
+
 #[test]
 #[serial]
 fn test_data() {
     test_with_leaks!(|| {
-        let mut v = vec![];
-
         let str: &str = "hello";
-        let bytes: Vec<u8> = str.as_bytes().to_vec();
+        let bytes = &str.as_bytes().to_vec();
         for _ in 0..10_000 {
-            let swift_byte: SRData = SRData::from(&bytes);
-            let data = unsafe { send_and_get_data(swift_byte) };
-            assert_eq!(
-                data.as_array().as_slice(),
-                SRData::from(&bytes).as_array().as_slice()
-            );
-            v.push(data);
+            let data = unsafe { send_and_get_data(&bytes.into()) };
+            assert_eq!(data.as_slice(), bytes);
         }
     });
 }
-
-swift!(fn get_greeting(name: &SRString) -> SRString);
-swift!(fn echo(string: &SRString) -> SRString);
-
-#[repr(C)]
-struct Complex {
-    a: SRString,
-    b: Int,
-    c: Bool,
-}
-
-swift!(fn complex_data() -> SRObjectArray<Complex>);
-swift!(fn send_and_get_data(data: SRData) -> SRData);
 
 const DEBUG_PLIST_XML: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">

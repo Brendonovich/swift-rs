@@ -172,6 +172,7 @@ pub struct SwiftLinker {
     packages: Vec<SwiftPackage>,
     macos_min_version: String,
     ios_min_version: Option<String>,
+    out_dir: Option<PathBuf>,
 }
 
 impl SwiftLinker {
@@ -183,6 +184,7 @@ impl SwiftLinker {
             packages: vec![],
             macos_min_version: macos_min_version.to_string(),
             ios_min_version: None,
+            out_dir: None,
         }
     }
 
@@ -208,6 +210,15 @@ impl SwiftLinker {
         self
     }
 
+    /// Sets the output directory of the `swift build` command, relative to the Swift package's directory.
+    ///
+    /// Note that the Swift CLI argument that sets the output path might not be available on older Xcode versions.
+    /// In this case, you can set the output dir to `.build`, the default Swift output directory.
+    pub fn out_dir<P: AsRef<Path>>(mut self, path: P) -> Self {
+        self.out_dir.replace(path.as_ref().into());
+        self
+    }
+
     /// Links the Swift runtime, then builds and links the provided packages.
     /// This does not (yet) automatically rebuild your Swift files when they are modified,
     /// you'll need to modify/save your `build.rs` file for that.
@@ -225,18 +236,27 @@ impl SwiftLinker {
 
         link_clang_rt(&rust_target);
 
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        let manifest_dir = Path::new(&manifest_dir);
+        let out_dir = self
+            .out_dir
+            .unwrap_or_else(|| PathBuf::from(&env::var("OUT_DIR").unwrap()));
+
         for package in self.packages {
-            let package_path =
-                Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join(&package.path);
-            let out_path = Path::new(&env::var("OUT_DIR").unwrap())
-                .join("swift-rs")
-                .join(&package.name);
+            let package_path = manifest_dir.join(&package.path);
 
             let mut command = Command::new("swift");
             command
                 .args(["build", "-c", configuration])
-                .current_dir(&package.path)
-                .args(["--scratch-path", &out_path.display().to_string()]);
+                .current_dir(&package.path);
+
+            let out_path = if out_dir != PathBuf::from(".build") {
+                let out_path = out_dir.join("swift-rs").join(&package.name);
+                command.args(["--scratch-path", &out_path.display().to_string()]);
+                out_path
+            } else {
+                package_path.join(&out_dir)
+            };
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
                 let sdk_path_output = Command::new("xcrun")

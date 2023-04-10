@@ -236,7 +236,7 @@ impl SwiftLinker {
             command
                 .args(["build", "-c", configuration])
                 .current_dir(&package.path)
-                .args(["--scratch-path", &out_path.display().to_string()]);
+                .args(["--build-path", &out_path.display().to_string()]);
 
             if matches!(rust_target.os, RustTargetOS::IOS) {
                 let sdk_path_output = Command::new("xcrun")

@@ -21,6 +21,7 @@ path = "src-rs/lib.rs"
 base64 = "0.21.0"
 serde = { version = "1.0", features = ["derive"], optional = true}
 serde_json = { version = "1.0", optional = true }
+specta = { version = "1.0", optional = true }
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"]}

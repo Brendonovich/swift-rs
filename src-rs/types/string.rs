@@ -21,7 +21,9 @@ use crate::{
 /// ```
 /// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L56)
 #[repr(transparent)]
-pub struct SRString(SRData);
+#[cfg_attr(feature = "specta", derive(specta::Type))]
+#[cfg_attr(feature = "specta", specta(transparent))]
+pub struct SRString(#[cfg_attr(feature = "specta", specta(type = String))] SRData);
 
 impl SRString {
     pub fn as_str(&self) -> &str {

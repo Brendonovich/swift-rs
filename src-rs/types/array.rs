@@ -60,7 +60,10 @@ pub struct SRArrayImpl<T> {
 /// ```
 /// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L32)
 #[repr(transparent)]
-pub struct SRArray<T>(SRObject<SRArrayImpl<T>>);
+#[cfg_attr(feature = "specta", derive(specta::Type))]
+pub struct SRArray<T>(
+    #[cfg_attr(feature = "specta", specta(type = Vec<T>))] SRObject<SRArrayImpl<T>>,
+);
 
 impl<T> SRArray<T> {
     pub fn as_slice(&self) -> &[T] {

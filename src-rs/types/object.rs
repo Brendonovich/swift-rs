@@ -32,6 +32,7 @@ pub struct SRObjectImpl<T> {
 /// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L49)
 #[repr(transparent)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
+#[derive(Debug)]
 pub struct SRObject<T>(
     #[cfg_attr(feature = "specta", specta(type = T))] pub(crate) NonNull<SRObjectImpl<T>>,
 );

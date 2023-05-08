@@ -23,6 +23,7 @@ use crate::{
 #[repr(transparent)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
 #[cfg_attr(feature = "specta", specta(transparent))]
+#[derive(Debug)]
 pub struct SRString(#[cfg_attr(feature = "specta", specta(type = String))] SRData);
 
 impl SRString {
@@ -74,6 +75,7 @@ impl serde::Serialize for SRString {
         serializer.serialize_str(self.as_str())
     }
 }
+
 #[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for SRString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

@@ -11,6 +11,7 @@ pub type SRObjectArray<T> = SRObject<SRArray<SRObject<T>>>;
 
 #[doc(hidden)]
 #[repr(C)]
+#[derive(Debug)]
 pub struct SRArrayImpl<T> {
     data: NonNull<T>,
     length: usize,
@@ -61,6 +62,7 @@ pub struct SRArrayImpl<T> {
 /// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L32)
 #[repr(transparent)]
 #[cfg_attr(feature = "specta", derive(specta::Type))]
+#[derive(Debug)]
 pub struct SRArray<T>(
     #[cfg_attr(feature = "specta", specta(type = Vec<T>))] SRObject<SRArrayImpl<T>>,
 );

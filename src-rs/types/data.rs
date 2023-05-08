@@ -23,6 +23,7 @@ type Data = SRArray<u8>;
 /// ```
 /// [_corresponding Swift code_](https://github.com/Brendonovich/swift-rs/blob/07269e511f1afb71e2fcfa89ca5d7338bceb20e8/tests/swift-pkg/doctests.swift#L68)
 #[repr(transparent)]
+#[derive(Debug)]
 pub struct SRData(SRObject<Data>);
 
 impl SRData {

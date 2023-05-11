@@ -238,34 +238,32 @@ impl SwiftLinker {
                 .current_dir(&package.path)
                 .args(["--build-path", &out_path.display().to_string()]);
 
-            if matches!(rust_target.os, RustTargetOS::IOS) {
-                let sdk_path_output = Command::new("xcrun")
-                    .args(["--sdk", &rust_target.sdk.to_string(), "--show-sdk-path"])
-                    .output()
-                    .unwrap();
-                if !sdk_path_output.status.success() {
-                    panic!(
-                        "Failed to get SDK path with `xcrun --sdk {} --show-sdk-path`",
-                        rust_target.sdk
-                    );
-                }
+			let sdk_path_output = Command::new("xcrun")
+				.args(["--sdk", &rust_target.sdk.to_string(), "--show-sdk-path"])
+				.output()
+				.unwrap();
+			if !sdk_path_output.status.success() {
+				panic!(
+					"Failed to get SDK path with `xcrun --sdk {} --show-sdk-path`",
+					rust_target.sdk
+				);
+			}
 
-                let sdk_path = String::from_utf8_lossy(&sdk_path_output.stdout);
+			let sdk_path = String::from_utf8_lossy(&sdk_path_output.stdout);
 
-                command.args([
-                    "-Xswiftc",
-                    "-sdk",
-                    "-Xswiftc",
-                    sdk_path.trim(),
-                    "-Xswiftc",
-                    "-target",
-                    "-Xswiftc",
-                    &rust_target.swift_target_triple(
-                        &self.macos_min_version,
-                        self.ios_min_version.as_deref(),
-                    ),
-                ]);
-            }
+			command.args([
+				"-Xswiftc",
+				"-sdk",
+				"-Xswiftc",
+				sdk_path.trim(),
+				"-Xswiftc",
+				"-target",
+				"-Xswiftc",
+				&rust_target.swift_target_triple(
+					&self.macos_min_version,
+					self.ios_min_version.as_deref(),
+				),
+			]);
 
             if !command.status().unwrap().success() {
                 panic!("Failed to compile swift package {}", package.name);

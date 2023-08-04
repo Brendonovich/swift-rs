@@ -134,7 +134,7 @@ swift!(fn echo_data(data: &SRData) -> SRData);
 fn test_data() {
     test_with_leaks!(|| {
         let str: &str = "hello";
-        let bytes = &str.as_bytes().to_vec();
+        let bytes = str.as_bytes();
         for _ in 0..10_000 {
             let data = unsafe { echo_data(&bytes.into()) };
             assert_eq!(data.as_slice(), bytes);

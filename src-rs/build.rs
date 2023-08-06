@@ -246,24 +246,23 @@ impl SwiftLinker {
             let sdk_path = String::from_utf8_lossy(&sdk_path_output.stdout);
 
             let mut command = Command::new("swift");
+
             command
                 .args(["build"])
                 .args(["--sdk", sdk_path.trim()])
                 .args(["-c", configuration])
                 .current_dir(&package.path)
-                .args(["--build-path", &out_path.display().to_string()]);
-
-            command.args([
-                "-Xswiftc",
-                "-sdk",
-                "-Xswiftc",
-                sdk_path.trim(),
-                "-Xswiftc",
-                "-target",
-                "-Xswiftc",
-                &rust_target
-                    .swift_target_triple(&self.macos_min_version, self.ios_min_version.as_deref()),
-            ]);
+                .args(["--build-path", &out_path.display().to_string()])
+                .args(["-Xswiftc", "-sdk"])
+                .args(["-Xswiftc", sdk_path.trim()])
+                .args(["-Xswiftc", "-target"])
+                .args([
+                    "-Xswiftc",
+                    &rust_target.swift_target_triple(
+                        &self.macos_min_version,
+                        self.ios_min_version.as_deref(),
+                    ),
+                ]);
 
             if !command.status().unwrap().success() {
                 panic!("Failed to compile swift package {}", package.name);
@@ -296,10 +295,12 @@ fn link_clang_rt(rust_target: &RustTarget) {
 }
 
 fn clang_link_search_path() -> String {
-    let output = std::process::Command::new("clang")
-        .arg("--print-search-dirs")
-        .output()
-        .unwrap();
+    let output = std::process::Command::new(
+        std::env::var("SWIFT_RS_CLANG").unwrap_or_else(|_| "/usr/bin/clang".to_string()),
+    )
+    .arg("--print-search-dirs")
+    .output()
+    .unwrap();
     if !output.status.success() {
         panic!("Can't get search paths from clang");
     }

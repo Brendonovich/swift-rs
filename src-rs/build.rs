@@ -246,15 +246,23 @@ impl SwiftLinker {
             let sdk_path = String::from_utf8_lossy(&sdk_path_output.stdout);
 
             let mut command = Command::new("swift");
+            command.current_dir(&package.path);
 
             command
+                // Build the package (duh)
                 .args(["build"])
+                // SDK path for regular compilation (idk)
                 .args(["--sdk", sdk_path.trim()])
+                // Release/Debug configuration
                 .args(["-c", configuration])
-                .current_dir(&package.path)
+                // Where the artifacts will be generated to
                 .args(["--build-path", &out_path.display().to_string()])
+                // Override SDK path for each swiftc instance.
+                // Necessary for iOS compilation.
                 .args(["-Xswiftc", "-sdk"])
                 .args(["-Xswiftc", sdk_path.trim()])
+                // Override target triple for each swiftc instance.
+                // Necessary for iOS compilation.
                 .args(["-Xswiftc", "-target"])
                 .args([
                     "-Xswiftc",

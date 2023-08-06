@@ -58,8 +58,8 @@ impl AsRef<[u8]> for SRData {
     }
 }
 
-impl From<&Vec<u8>> for SRData {
-    fn from(value: &Vec<u8>) -> Self {
+impl From<&[u8]> for SRData {
+    fn from(value: &[u8]) -> Self {
         unsafe { swift::data_from_bytes(value.as_ptr(), value.len() as Int) }
     }
 }

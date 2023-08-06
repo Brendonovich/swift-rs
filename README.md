@@ -450,7 +450,7 @@ for _ in 0..10000 {
 
 ## Limitations
 
-Currently, the only types that can be created from Rust are number types, boolean, `SRString`, and `SRArray`/`SRData`.
+Currently, the only types that can be created from Rust are number types, boolean, `SRString`, and `SRData`.
 This is because those types are easy to allocate memory for, either on the stack or on the heap via calling out to swift,
 whereas other types are not. This may be implemented in the future, though.
 

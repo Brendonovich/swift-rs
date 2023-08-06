@@ -33,15 +33,15 @@ let package = Package(
         ),
     ],
     targets: [
-		.target(
-			// Must specify swift-rs as a dependency of your target
-			dependencies: [
-				.product(
-					name: "SwiftRs",
-					package: "swift-rs"
-				)
-			],
-		)
+        .target(
+            // Must specify swift-rs as a dependency of your target
+            dependencies: [
+                .product(
+                    name: "SwiftRs",
+                    package: "swift-rs"
+                )
+            ],
+        )
     ]
 )
 ```

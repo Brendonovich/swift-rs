@@ -25,15 +25,24 @@ This can be done in XCode by selecting File -> New -> Project -> Multiplatform -
 ```swift
 let package = Package(
     dependencies: [
-        .package(name: "SwiftRs", url: "https://github.com/Brendonovich/swift-rs", from: "1.0.5")
+        .package(url: "https://github.com/Brendonovich/swift-rs", from: "1.0.5")
     ],
     products: [
         .library(
             type: .static,
-	    .. // other configuration
         ),
     ],
-    .. // other configuration
+    targets: [
+		.target(
+			// Must specify swift-rs as a dependency of your target
+			dependencies: [
+				.product(
+					name: "SwiftRs",
+					package: "swift-rs"
+				)
+			],
+		)
+    ]
 )
 ```
 3. Create a `build.rs` file in your project's root folder, if you don't have one already.

@@ -71,7 +71,7 @@ With those steps completed, you should be ready to start using Swift code from R
 
 If you experience the error `dyld[16008]: Library not loaded: @rpath/libswiftCore.dylib`
 when using `swift-rs` with [Tauri](https://tauri.app) ensure you have set your
-[Tauri minimum system version](https://tauri.app/v1/guides/distribution/macos/#minimum-system-version)
+[Tauri minimum system version](https://tauri.app/v1/guides/building/macos#setting-a-minimum-system-version)
 to `10.15` or higher in your `tauri.config.json`. 
 
 ## Calling basic functions

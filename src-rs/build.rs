@@ -248,6 +248,11 @@ impl SwiftLinker {
             let mut command = Command::new("swift");
             command.current_dir(&package.path);
 
+            let arch = match std::env::consts::ARCH {
+                "aarch64" => "arm64",
+                arch => arch,
+            };
+
             command
                 // Build the package (duh)
                 .args(["build"])
@@ -255,6 +260,7 @@ impl SwiftLinker {
                 .args(["--sdk", sdk_path.trim()])
                 // Release/Debug configuration
                 .args(["-c", configuration])
+                .args(["--arch", arch])
                 // Where the artifacts will be generated to
                 .args(["--build-path", &out_path.display().to_string()])
                 // Override SDK path for each swiftc instance.
@@ -280,10 +286,7 @@ impl SwiftLinker {
                 // swift build uses this output folder no matter what is the target
                 .join(format!(
                     "{}-apple-macosx",
-                    match std::env::consts::ARCH {
-                        "aarch64" => "arm64",
-                        arch => arch,
-                    }
+                    arch
                 ))
                 .join(configuration);
 

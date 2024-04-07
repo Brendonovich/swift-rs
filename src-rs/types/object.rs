@@ -4,7 +4,7 @@ use std::{ffi::c_void, ops::Deref, ptr::NonNull};
 #[doc(hidden)]
 #[repr(C)]
 pub struct SRObjectImpl<T> {
-    _nsobject_offset: u8,
+    _nsobject_offset: *const c_void,
     data: T,
 }
 

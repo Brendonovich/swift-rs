@@ -284,10 +284,7 @@ impl SwiftLinker {
 
             let search_path = out_path
                 // swift build uses this output folder no matter what is the target
-                .join(format!(
-                    "{}-apple-macosx",
-                    arch
-                ))
+                .join(format!("{}-apple-macosx", arch))
                 .join(configuration);
 
             println!("cargo:rerun-if-changed={}", package_path.display());

@@ -26,7 +26,6 @@ type Data = SRArray<u8>;
 pub struct SRData(SRObject<Data>);
 
 impl SRData {
-    ///
     pub fn as_slice(&self) -> &[u8] {
         self
     }

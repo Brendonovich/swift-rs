@@ -33,8 +33,6 @@ impl SwiftEnv {
         let rust_target = RustTarget::from_env();
         let target = rust_target.swift_target_triple(minimum_macos_version, minimum_ios_version, minimum_visionos_version);
 
-        println!("============SwiftEnv {target:?}");
-
         let swift_target_info_str = Command::new("swift")
             .args(["-target", &target, "-print-target-info"])
             .output()
@@ -66,7 +64,7 @@ impl RustTargetOS {
         match self {
             Self::MacOS => "macosx",
             Self::IOS => "ios",
-            Self::VisionOS => "visionos",
+            Self::VisionOS => "xros",
         }
     }
 }
@@ -152,11 +150,10 @@ impl RustTarget {
         let unversioned = self.unversioned_swift_target_triple();
         format!(
             "{unversioned}{}{}",
-            match (&self.os, minimum_ios_version) {
-                (RustTargetOS::MacOS, _) => minimum_macos_version,
-                (RustTargetOS::IOS, Some(version)) => version,
-                (RustTargetOS::VisionOS, Some(version)) => version,
-                _ => "",
+            match &self.os {
+                RustTargetOS::MacOS => minimum_macos_version,
+                RustTargetOS::IOS => minimum_ios_version.unwrap(),
+                RustTargetOS::VisionOS => minimum_visionos_version.unwrap(),
             },
             // simulator suffix
             matches!(self.sdk, SwiftSDK::IOSSimulator | SwiftSDK::VisionOSSimulator)

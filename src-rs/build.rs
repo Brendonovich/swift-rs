@@ -120,8 +120,8 @@ impl Display for SwiftSDK {
             Self::MacOS => write!(f, "macosx"),
             Self::IOSSimulator => write!(f, "iphonesimulator"),
             Self::IOS => write!(f, "iphoneos"),
-            Self::VisionOSSimulator => write!(f, "visionsimulator"),
-            Self::VisionOS => write!(f, "visionos"),
+            Self::VisionOSSimulator => write!(f, "xrsimulator"),
+            Self::VisionOS => write!(f, "xros"),
         }
     }
 }

@@ -33,6 +33,8 @@ impl SwiftEnv {
         let rust_target = RustTarget::from_env();
         let target = rust_target.swift_target_triple(minimum_macos_version, minimum_ios_version, minimum_visionos_version);
 
+        println!("============SwiftEnv {target:?}");
+
         let swift_target_info_str = Command::new("swift")
             .args(["-target", &target, "-print-target-info"])
             .output()
@@ -215,7 +217,7 @@ impl SwiftLinker {
     /// using the specified minimum visionOS version.
     ///
     /// Minimum visionOS version must be at least 11.
-    pub fn with_visionOS(mut self, min_version: &str) -> Self {
+    pub fn with_visionos(mut self, min_version: &str) -> Self {
         self.visionos_min_version = Some(min_version.to_string());
         self
     }

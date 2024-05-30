@@ -29,9 +29,9 @@ struct SwiftEnv {
 }
 
 impl SwiftEnv {
-    fn new(minimum_macos_version: &str, minimum_ios_version: Option<&str>) -> Self {
+    fn new(minimum_macos_version: &str, minimum_ios_version: Option<&str>, minimum_visionos_version: Option<&str>) -> Self {
         let rust_target = RustTarget::from_env();
-        let target = rust_target.swift_target_triple(minimum_macos_version, minimum_ios_version);
+        let target = rust_target.swift_target_triple(minimum_macos_version, minimum_ios_version, minimum_visionos_version);
 
         let swift_target_info_str = Command::new("swift")
             .args(["-target", &target, "-print-target-info"])
@@ -47,6 +47,7 @@ impl SwiftEnv {
 enum RustTargetOS {
     MacOS,
     IOS,
+    VisionOS,
 }
 
 impl RustTargetOS {
@@ -54,6 +55,7 @@ impl RustTargetOS {
         match env::var("CARGO_CFG_TARGET_OS").unwrap().as_str() {
             "macos" => RustTargetOS::MacOS,
             "ios" => RustTargetOS::IOS,
+            "visionos" => RustTargetOS::VisionOS,
             _ => panic!("unexpected target operating system"),
         }
     }
@@ -62,6 +64,7 @@ impl RustTargetOS {
         match self {
             Self::MacOS => "macosx",
             Self::IOS => "ios",
+            Self::VisionOS => "visionos",
         }
     }
 }
@@ -71,6 +74,7 @@ impl Display for RustTargetOS {
         match self {
             Self::MacOS => write!(f, "macos"),
             Self::IOS => write!(f, "ios"),
+            Self::VisionOS => write!(f, "visionos"),
         }
     }
 }
@@ -80,18 +84,22 @@ enum SwiftSDK {
     MacOS,
     IOS,
     IOSSimulator,
+    VisionOS,
+    VisionOSSimulator,
 }
 
 impl SwiftSDK {
     fn from_os(os: &RustTargetOS) -> Self {
         let target = env::var("TARGET").unwrap();
-        let simulator = target.ends_with("ios-sim")
+        let simulator = target.ends_with("ios-sim") || target.ends_with("visionos-sim")
             || (target.starts_with("x86_64") && target.ends_with("ios"));
 
         match os {
             RustTargetOS::MacOS => Self::MacOS,
             RustTargetOS::IOS if simulator => Self::IOSSimulator,
             RustTargetOS::IOS => Self::IOS,
+            RustTargetOS::VisionOS if simulator => Self::VisionOSSimulator,
+            RustTargetOS::VisionOS => Self::VisionOS,
         }
     }
 
@@ -100,6 +108,8 @@ impl SwiftSDK {
             Self::MacOS => "osx",
             Self::IOS => "ios",
             Self::IOSSimulator => "iossim",
+            Self::VisionOS => "visionos",
+            Self::VisionOSSimulator => "visionossim",
         }
     }
 }
@@ -110,6 +120,8 @@ impl Display for SwiftSDK {
             Self::MacOS => write!(f, "macosx"),
             Self::IOSSimulator => write!(f, "iphonesimulator"),
             Self::IOS => write!(f, "iphoneos"),
+            Self::VisionOSSimulator => write!(f, "visionsimulator"),
+            Self::VisionOS => write!(f, "visionos"),
         }
     }
 }
@@ -133,6 +145,7 @@ impl RustTarget {
         &self,
         minimum_macos_version: &str,
         minimum_ios_version: Option<&str>,
+        minimum_visionos_version: Option<&str>,
     ) -> String {
         let unversioned = self.unversioned_swift_target_triple();
         format!(
@@ -140,10 +153,11 @@ impl RustTarget {
             match (&self.os, minimum_ios_version) {
                 (RustTargetOS::MacOS, _) => minimum_macos_version,
                 (RustTargetOS::IOS, Some(version)) => version,
+                (RustTargetOS::VisionOS, Some(version)) => version,
                 _ => "",
             },
             // simulator suffix
-            matches!(self.sdk, SwiftSDK::IOSSimulator)
+            matches!(self.sdk, SwiftSDK::IOSSimulator | SwiftSDK::VisionOSSimulator)
                 .then(|| "-simulator".to_string())
                 .unwrap_or_default()
         )
@@ -172,6 +186,7 @@ pub struct SwiftLinker {
     packages: Vec<SwiftPackage>,
     macos_min_version: String,
     ios_min_version: Option<String>,
+    visionos_min_version: Option<String>,
 }
 
 impl SwiftLinker {
@@ -183,6 +198,7 @@ impl SwiftLinker {
             packages: vec![],
             macos_min_version: macos_min_version.to_string(),
             ios_min_version: None,
+            visionos_min_version: None,
         }
     }
 
@@ -192,6 +208,15 @@ impl SwiftLinker {
     /// Minimum iOS version must be at least 11.
     pub fn with_ios(mut self, min_version: &str) -> Self {
         self.ios_min_version = Some(min_version.to_string());
+        self
+    }
+    
+    /// Instructs the [`SwiftLinker`] to also compile for visionOS
+    /// using the specified minimum visionOS version.
+    ///
+    /// Minimum visionOS version must be at least 11.
+    pub fn with_visionOS(mut self, min_version: &str) -> Self {
+        self.visionos_min_version = Some(min_version.to_string());
         self
     }
 
@@ -212,7 +237,7 @@ impl SwiftLinker {
     /// This does not (yet) automatically rebuild your Swift files when they are modified,
     /// you'll need to modify/save your `build.rs` file for that.
     pub fn link(self) {
-        let swift_env = SwiftEnv::new(&self.macos_min_version, self.ios_min_version.as_deref());
+        let swift_env = SwiftEnv::new(&self.macos_min_version, self.ios_min_version.as_deref(), self.visionos_min_version.as_deref());
 
         #[allow(clippy::uninlined_format_args)]
         for path in swift_env.paths.runtime_library_paths {
@@ -275,6 +300,7 @@ impl SwiftLinker {
                     &rust_target.swift_target_triple(
                         &self.macos_min_version,
                         self.ios_min_version.as_deref(),
+                        self.visionos_min_version.as_deref(),
                     ),
                 ]);
 

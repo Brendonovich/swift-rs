@@ -108,8 +108,8 @@ impl SwiftSDK {
             Self::MacOS => "osx",
             Self::IOS => "ios",
             Self::IOSSimulator => "iossim",
-            Self::VisionOS => "visionos",
-            Self::VisionOSSimulator => "visionossim",
+            Self::VisionOS => "xros",
+            Self::VisionOSSimulator => "xrsimulator",
         }
     }
 }
@@ -302,6 +302,8 @@ impl SwiftLinker {
                         self.visionos_min_version.as_deref(),
                     ),
                 ]);
+
+            println!("Command `{command:?}`");
 
             if !command.status().unwrap().success() {
                 panic!("Failed to compile swift package {}", package.name);

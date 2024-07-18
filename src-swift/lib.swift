@@ -1,27 +1,35 @@
 import Foundation
 
-public class SRArray<T>: NSObject {
+public class SRArray<T>: NSObject, ExpressibleByArrayLiteral {
+    public typealias ArrayLiteralElement = T
+    
     // Used by Rust
     let pointer: UnsafePointer<T>
-    let length: Int;
+    let length: Int
     
     // Actual array, deallocates objects inside automatically
-    let array: [T];
+    let array: [T]
 
     public override init() {
-        self.array = [];
-        self.pointer = UnsafePointer(self.array);
-        self.length = 0;
+        self.array = []
+        self.pointer = UnsafePointer(self.array)
+        self.length = 0
     }
 
     public init(_ data: [T]) {
-        self.array = data;
+        self.array = data
         self.pointer = UnsafePointer(self.array)
         self.length = data.count
     }
+    
+    public required init(arrayLiteral elements: T...) {
+        self.array = elements
+        self.pointer = UnsafePointer(elements)
+        self.length = elements.count
+    }
 
     public func toArray() -> [T] {
-        return Array(self.array)
+        return self.array
     }
 }
 
@@ -53,7 +61,9 @@ public class SRData: NSObject {
     }
 }
 
-public class SRString: SRData {
+public class SRString: SRData, ExpressibleByStringLiteral {
+    public typealias StringLiteralType = String
+    
     public override init() {
         super.init([])
     }
@@ -62,6 +72,10 @@ public class SRString: SRData {
         super.init(Array(string.utf8))
     }
 
+    public required init(stringLiteral value: String) {
+        super.init(Array(value.utf8))
+    }
+    
     init(_ data: SRData) {
         super.init(data.data)
     }

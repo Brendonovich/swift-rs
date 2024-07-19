@@ -34,7 +34,7 @@ public final class SRArray<T>: NSObject, ExpressibleByArrayLiteral {
 }
 
 @available(*, deprecated, message: "use SRArray<NSObject> instead")
-typealias SRObjectArray = SRArray<NSObject>
+public typealias SRObjectArray = SRArray<NSObject>
 
 public class SRData: NSObject {
     let data: SRArray<UInt8>

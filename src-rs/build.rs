@@ -253,9 +253,12 @@ impl SwiftLinker {
                 arch => arch,
             };
 
+            let swift_target_triple = rust_target
+                .swift_target_triple(&self.macos_min_version, self.ios_min_version.as_deref());
+
             command
                 // Build the package (duh)
-                .args(["build"])
+                .arg("build")
                 // SDK path for regular compilation (idk)
                 .args(["--sdk", sdk_path.trim()])
                 // Release/Debug configuration
@@ -270,13 +273,9 @@ impl SwiftLinker {
                 // Override target triple for each swiftc instance.
                 // Necessary for iOS compilation.
                 .args(["-Xswiftc", "-target"])
-                .args([
-                    "-Xswiftc",
-                    &rust_target.swift_target_triple(
-                        &self.macos_min_version,
-                        self.ios_min_version.as_deref(),
-                    ),
-                ]);
+                .args(["-Xswiftc", &swift_target_triple])
+                .args(["-Xcc", &format!("--target={swift_target_triple}")])
+                .args(["-Xcxx", &format!("--target={swift_target_triple}")]);
 
             if !command.status().unwrap().success() {
                 panic!("Failed to compile swift package {}", package.name);
@@ -284,10 +283,7 @@ impl SwiftLinker {
 
             let search_path = out_path
                 // swift build uses this output folder no matter what is the target
-                .join(format!(
-                    "{}-apple-macosx",
-                    arch
-                ))
+                .join(format!("{}-apple-macosx", arch))
                 .join(configuration);
 
             println!("cargo:rerun-if-changed={}", package_path.display());

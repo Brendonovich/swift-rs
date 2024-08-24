@@ -78,7 +78,7 @@ dependencies = [
 
 [[package]]
 name = "swift-rs"
-version = "1.0.5"
+version = "1.0.7"
 dependencies = [
  "base64",
  "serde",

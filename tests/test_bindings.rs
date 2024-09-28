@@ -148,3 +148,22 @@ const DEBUG_PLIST_XML: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
     <dict><key>com.apple.security.get-task-allow</key><true/></dict>
 </plist>
 "#;
+
+#[repr(C)]
+struct MemoryTestData {
+    a: i32,
+    b: i32,
+    c: i32,
+    d: i32,
+}
+
+swift!(fn get_memory_test_data() -> SRObject<MemoryTestData>);
+
+#[test]
+fn test_memory_layout() {
+    let data = unsafe { get_memory_test_data() };
+    assert_eq!(data.a, 1);
+    assert_eq!(data.b, 2);
+    assert_eq!(data.c, 3);
+    assert_eq!(data.d, 4);
+}

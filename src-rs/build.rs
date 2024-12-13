@@ -29,9 +29,17 @@ struct SwiftEnv {
 }
 
 impl SwiftEnv {
-    fn new(minimum_macos_version: &str, minimum_ios_version: Option<&str>, minimum_visionos_version: Option<&str>) -> Self {
+    fn new(
+        minimum_macos_version: &str,
+        minimum_ios_version: Option<&str>,
+        minimum_visionos_version: Option<&str>,
+    ) -> Self {
         let rust_target = RustTarget::from_env();
-        let target = rust_target.swift_target_triple(minimum_macos_version, minimum_ios_version, minimum_visionos_version);
+        let target = rust_target.swift_target_triple(
+            minimum_macos_version,
+            minimum_ios_version,
+            minimum_visionos_version,
+        );
 
         let swift_target_info_str = Command::new("swift")
             .args(["-target", &target, "-print-target-info"])
@@ -91,7 +99,8 @@ enum SwiftSDK {
 impl SwiftSDK {
     fn from_os(os: &RustTargetOS) -> Self {
         let target = env::var("TARGET").unwrap();
-        let simulator = target.ends_with("ios-sim") || target.ends_with("visionos-sim")
+        let simulator = target.ends_with("ios-sim")
+            || target.ends_with("visionos-sim")
             || (target.starts_with("x86_64") && target.ends_with("ios"));
 
         match os {
@@ -156,9 +165,12 @@ impl RustTarget {
                 RustTargetOS::VisionOS => minimum_visionos_version.unwrap(),
             },
             // simulator suffix
-            matches!(self.sdk, SwiftSDK::IOSSimulator | SwiftSDK::VisionOSSimulator)
-                .then(|| "-simulator".to_string())
-                .unwrap_or_default()
+            matches!(
+                self.sdk,
+                SwiftSDK::IOSSimulator | SwiftSDK::VisionOSSimulator
+            )
+            .then(|| "-simulator".to_string())
+            .unwrap_or_default()
         )
     }
 
@@ -209,7 +221,7 @@ impl SwiftLinker {
         self.ios_min_version = Some(min_version.to_string());
         self
     }
-    
+
     /// Instructs the [`SwiftLinker`] to also compile for visionOS
     /// using the specified minimum visionOS version.
     ///
@@ -236,7 +248,11 @@ impl SwiftLinker {
     /// This does not (yet) automatically rebuild your Swift files when they are modified,
     /// you'll need to modify/save your `build.rs` file for that.
     pub fn link(self) {
-        let swift_env = SwiftEnv::new(&self.macos_min_version, self.ios_min_version.as_deref(), self.visionos_min_version.as_deref());
+        let swift_env = SwiftEnv::new(
+            &self.macos_min_version,
+            self.ios_min_version.as_deref(),
+            self.visionos_min_version.as_deref(),
+        );
 
         #[allow(clippy::uninlined_format_args)]
         for path in swift_env.paths.runtime_library_paths {
@@ -277,9 +293,15 @@ impl SwiftLinker {
                 arch => arch,
             };
 
+            let swift_target_triple = rust_target.swift_target_triple(
+                &self.macos_min_version,
+                self.ios_min_version.as_deref(),
+                self.visionos_min_version.as_deref(),
+            );
+
             command
                 // Build the package (duh)
-                .args(["build"])
+                .arg("build")
                 // SDK path for regular compilation (idk)
                 .args(["--sdk", sdk_path.trim()])
                 // Release/Debug configuration
@@ -294,14 +316,9 @@ impl SwiftLinker {
                 // Override target triple for each swiftc instance.
                 // Necessary for iOS compilation.
                 .args(["-Xswiftc", "-target"])
-                .args([
-                    "-Xswiftc",
-                    &rust_target.swift_target_triple(
-                        &self.macos_min_version,
-                        self.ios_min_version.as_deref(),
-                        self.visionos_min_version.as_deref(),
-                    ),
-                ]);
+                .args(["-Xswiftc", &swift_target_triple])
+                .args(["-Xcc", &format!("--target={swift_target_triple}")])
+                .args(["-Xcxx", &format!("--target={swift_target_triple}")]);
 
             println!("Command `{command:?}`");
 
@@ -311,10 +328,7 @@ impl SwiftLinker {
 
             let search_path = out_path
                 // swift build uses this output folder no matter what is the target
-                .join(format!(
-                    "{}-apple-macosx",
-                    arch
-                ))
+                .join(format!("{}-apple-macosx", arch))
                 .join(configuration);
 
             println!("cargo:rerun-if-changed={}", package_path.display());

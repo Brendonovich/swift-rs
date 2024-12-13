@@ -1,49 +1,59 @@
 import Foundation
 
-public class SRArray<T>: NSObject {
+public final class SRArray<T>: NSObject, ExpressibleByArrayLiteral {
+    public typealias ArrayLiteralElement = T
+
     // Used by Rust
-    let pointer: UnsafePointer<T>
-    let length: Int;
-    
+    public let pointer: UnsafePointer<T>
+    public let length: Int
+
     // Actual array, deallocates objects inside automatically
-    let array: [T];
+    public let array: [T]
 
     public override init() {
-        self.array = [];
-        self.pointer = UnsafePointer(self.array);
-        self.length = 0;
+        self.array = []
+        self.pointer = UnsafePointer(self.array)
+        self.length = 0
     }
 
     public init(_ data: [T]) {
-        self.array = data;
+        self.array = data
         self.pointer = UnsafePointer(self.array)
         self.length = data.count
     }
 
+    public init(arrayLiteral elements: T...) {
+        self.array = elements
+        self.pointer = UnsafePointer(elements)
+        self.length = elements.count
+    }
+
     public func toArray() -> [T] {
-        return Array(self.array)
+        return self.array
     }
 }
 
-public class SRObjectArray: NSObject {
-    let data: SRArray<NSObject>
-    
-    public init(_ data: [NSObject]) {
-        self.data = SRArray(data)
+@available(*, deprecated, message: "use SRArray<NSObject> instead")
+public typealias SRObjectArray = SRArray<NSObject>
+
+public extension SRArray<NSObject> {
+    @available(*, deprecated, message: "this property is just for backward compatibility; use self instead.")
+    var data: Self {
+        get { self }
     }
 }
 
 public class SRData: NSObject {
-    let data: SRArray<UInt8>
-    
+    public let data: SRArray<UInt8>
+
     public override init() {
         self.data = SRArray()
     }
-    
+
     public init(_ data: [UInt8]) {
         self.data = SRArray(data)
     }
-    
+
     public init (_ srArray: SRArray<UInt8>) {
         self.data = srArray
     }
@@ -53,7 +63,9 @@ public class SRData: NSObject {
     }
 }
 
-public class SRString: SRData {
+public final class SRString: SRData, ExpressibleByStringLiteral {
+    public typealias StringLiteralType = String
+
     public override init() {
         super.init([])
     }
@@ -62,7 +74,11 @@ public class SRString: SRData {
         super.init(Array(string.utf8))
     }
 
-    init(_ data: SRData) {
+    public init(stringLiteral value: String) {
+        super.init(Array(value.utf8))
+    }
+
+    public init(_ data: SRData) {
         super.init(data.data)
     }
 
@@ -72,23 +88,23 @@ public class SRString: SRData {
 }
 
 @_cdecl("retain_object")
-func retainObject(ptr: UnsafeMutableRawPointer) {
+public func retainObject(ptr: UnsafeMutableRawPointer) {
     let _ = Unmanaged<AnyObject>.fromOpaque(ptr).retain()
 }
 
 @_cdecl("release_object")
-func releaseObject(ptr: UnsafeMutableRawPointer) {
+public func releaseObject(ptr: UnsafeMutableRawPointer) {
     let _ = Unmanaged<AnyObject>.fromOpaque(ptr).release()
 }
 
 @_cdecl("data_from_bytes")
-func dataFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRData {
+public func dataFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRData {
     let buffer = UnsafeBufferPointer(start: data, count: size)
     return SRData(Array(buffer))
 }
 
 @_cdecl("string_from_bytes")
-func stringFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRString {
+public func stringFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let data = dataFromBytes(data: data, size: size);
     return SRString(data)
 }

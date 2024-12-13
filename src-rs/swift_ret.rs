@@ -1,4 +1,4 @@
-use crate::{swift::SwiftObject, *};
+use crate::*;
 use std::ffi::c_void;
 
 /// Identifies a type as being a valid return type from a Swift function.

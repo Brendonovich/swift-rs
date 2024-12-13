@@ -27,3 +27,22 @@ func complexData() -> SRObjectArray {
 func echoData(data: SRData) -> SRData {
     return SRData(data.toArray())
 }
+
+class MemoryTestData: NSObject {
+    var a: Int32
+    var b: Int32
+    var c: Int32
+    var d: Int32
+    
+    public override init() {
+        self.a = 1
+        self.b = 2
+        self.c = 3
+        self.d = 4
+    }
+}
+
+@_cdecl("get_memory_test_data")
+func createTestData() -> MemoryTestData {
+    return MemoryTestData()
+}

@@ -285,7 +285,7 @@ impl SwiftLinker {
 
             let sdk_path = String::from_utf8_lossy(&sdk_path_output.stdout);
 
-            let mut command = Command::new("swift");
+            let mut command = Command::new("xcrun");
             command.current_dir(&package.path);
 
             let arch = match std::env::consts::ARCH {
@@ -300,6 +300,12 @@ impl SwiftLinker {
             );
 
             command
+                // https://github.com/fwcd/nuit/blob/bd7a6496c23597ef54b381576558165badd5f009/nuit-bridge-swiftui/build.rs#L109-L120
+                // We have to make sure that we always use the macOS version of the
+                // Swift Package Manager, even when cross-compiling for iOS.
+                .args(&["--sdk", "macosx"])
+                // Invoke the swift compiler
+                .arg("swift")
                 // Build the package (duh)
                 .arg("build")
                 // SDK path for regular compilation (idk)

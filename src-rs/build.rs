@@ -353,37 +353,14 @@ impl SwiftLinker {
             println!("cargo:rerun-if-changed={}", package_path.display());
             println!("cargo:rustc-link-search=native={}", search_path.display());
 
-            // Auto-detect library type based on what SPM actually built.
-            // When Package.swift specifies `type: .dynamic`, SPM produces a .dylib.
-            // When it specifies `type: .static` (or omits type), SPM produces a .a.
-            // We check for dylib first because SPM may produce both files, but the
-            // dylib is the "real" one when dynamic is requested.
+            // Auto-detect library type: check if static (.a) or dynamic (.dylib) was built
             let static_lib = search_path.join(format!("lib{}.a", package.name));
             let dynamic_lib = search_path.join(format!("lib{}.dylib", package.name));
 
-            // Check file sizes to determine which is the "real" library.
-            // When building dynamic, SPM still creates a .a but it may be a stub.
-            let dynamic_exists = dynamic_lib.exists();
-            let static_exists = static_lib.exists();
-
-            let use_dynamic = if dynamic_exists && static_exists {
-                // Both exist - check if dylib is substantial (not just metadata)
-                let dylib_size = std::fs::metadata(&dynamic_lib)
-                    .map(|m| m.len())
-                    .unwrap_or(0);
-                // If dylib is > 1KB, it's probably the real library
-                dylib_size > 1024
-            } else {
-                dynamic_exists
-            };
-
-            if use_dynamic {
-                // Dynamic library: link as dylib and set rpath so it can be found at runtime
+            if dynamic_lib.exists() {
                 println!("cargo:rustc-link-lib=dylib={}", package.name);
-                // Add rpath for the Swift package's dylib
                 println!("cargo:rustc-link-arg=-Wl,-rpath,{}", search_path.display());
-            } else if static_exists {
-                // Static library: link as static
+            } else if static_lib.exists() {
                 println!("cargo:rustc-link-lib=static={}", package.name);
             } else {
                 panic!(
@@ -400,7 +377,6 @@ impl SwiftLinker {
                     "cargo:rustc-link-search=framework={}",
                     search_path.display()
                 );
-                // Add rpath for frameworks (may already be added above for dylib, but that's ok)
                 println!("cargo:rustc-link-arg=-Wl,-rpath,{}", search_path.display());
                 // Emit metadata so downstream crates can propagate the rpath.
                 // Downstream crates can read this via DEP_<LINKS_NAME>_FRAMEWORK_PATH

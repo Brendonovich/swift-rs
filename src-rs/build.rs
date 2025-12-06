@@ -360,10 +360,7 @@ impl SwiftLinker {
                     "cargo:rustc-link-search=framework={}",
                     search_path.display()
                 );
-                println!(
-                    "cargo:rustc-link-arg=-Wl,-rpath,{}",
-                    search_path.display()
-                );
+                println!("cargo:rustc-link-arg=-Wl,-rpath,{}", search_path.display());
                 // Emit metadata so downstream crates can propagate the rpath.
                 // Downstream crates can read this via DEP_<LINKS_NAME>_FRAMEWORK_PATH
                 // if the current crate has `links = "..."` in Cargo.toml.
@@ -376,32 +373,26 @@ impl SwiftLinker {
     }
 }
 
-/// Propagates framework rpath from an upstream crate that uses swift-rs.
-///
-/// Call this in `build.rs` of crates that transitively depend on a swift-rs crate.
-/// The upstream crate must have `links = "<link_name>"` in Cargo.toml.
-///
-/// # Arguments
-/// * `link_name` - The value of the `links` key from the upstream crate's Cargo.toml
-/// * `propagate` - If true, also emits `cargo:framework_path` so further downstream
-///   crates can continue the chain. Requires this crate to also have a `links` key.
-///
-/// # Example
-///
-/// ```rust,ignore
-/// // In a crate that depends on `am2` (which has `links = "am2"`)
-/// fn main() {
-///     #[cfg(target_os = "macos")]
-///     swift_rs::propagate_framework_rpath("am2", false);
-/// }
-/// ```
+#[cfg(feature = "build")]
+pub fn link_swift_framework(link_name: &str) {
+    // Auto-detect: if this crate has `links = "..."`, it can propagate to downstream.
+    // CARGO_MANIFEST_LINKS is only set when the crate has a `links` key.
+    let should_propagate = env::var("CARGO_MANIFEST_LINKS").is_ok();
+    do_link_framework_rpath(link_name, should_propagate);
+}
+
 #[cfg(feature = "build")]
 pub fn propagate_framework_rpath(link_name: &str, propagate: bool) {
+    do_link_framework_rpath(link_name, propagate);
+}
+
+#[cfg(feature = "build")]
+fn do_link_framework_rpath(link_name: &str, propagate: bool) {
     let env_var = format!(
         "DEP_{}_FRAMEWORK_PATH",
         link_name.to_uppercase().replace('-', "_")
     );
-    if let Ok(path) = std::env::var(&env_var) {
+    if let Ok(path) = env::var(&env_var) {
         if !path.is_empty() {
             println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path);
             if propagate {

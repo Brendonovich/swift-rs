@@ -195,6 +195,8 @@ struct SwiftPackage {
 #[cfg(feature = "build")]
 pub struct SwiftLinker {
     packages: Vec<SwiftPackage>,
+    /// Binary framework dependencies (e.g., xcframeworks) that need to be linked.
+    frameworks: Vec<String>,
     macos_min_version: String,
     ios_min_version: Option<String>,
     visionos_min_version: Option<String>,
@@ -207,6 +209,7 @@ impl SwiftLinker {
     pub fn new(macos_min_version: &str) -> Self {
         Self {
             packages: vec![],
+            frameworks: vec![],
             macos_min_version: macos_min_version.to_string(),
             ios_min_version: None,
             visionos_min_version: None,
@@ -241,6 +244,18 @@ impl SwiftLinker {
             path: path.as_ref().into(),
         }]);
 
+        self
+    }
+
+    /// Adds a binary framework dependency to be linked.
+    ///
+    /// Use this for xcframework dependencies that are downloaded by SPM
+    /// (e.g., from a Swift package registry). The framework will be linked
+    /// and an rpath will be set so it can be found at runtime.
+    ///
+    /// `name` should be the framework name without the `.framework` extension.
+    pub fn with_framework(mut self, name: &str) -> Self {
+        self.frameworks.push(name.to_string());
         self
     }
 
@@ -299,6 +314,11 @@ impl SwiftLinker {
                 self.visionos_min_version.as_deref(),
             );
 
+            // swift build outputs here regardless of target platform
+            let search_path = out_path
+                .join(format!("{}-apple-macosx", arch))
+                .join(configuration);
+
             command
                 // Build the package (duh)
                 .arg("build")
@@ -318,7 +338,11 @@ impl SwiftLinker {
                 .args(["-Xswiftc", "-target"])
                 .args(["-Xswiftc", &swift_target_triple])
                 .args(["-Xcc", &format!("--target={swift_target_triple}")])
-                .args(["-Xcxx", &format!("--target={swift_target_triple}")]);
+                .args(["-Xcxx", &format!("--target={swift_target_triple}")])
+                // Framework search path for packages that produce or depend on frameworks.
+                // This matches the path used for cargo:rustc-link-search below.
+                .args(["-Xswiftc", "-F"])
+                .args(["-Xswiftc", &search_path.display().to_string()]);
 
             println!("Command `{command:?}`");
 
@@ -326,14 +350,113 @@ impl SwiftLinker {
                 panic!("Failed to compile swift package {}", package.name);
             }
 
-            let search_path = out_path
-                // swift build uses this output folder no matter what is the target
-                .join(format!("{}-apple-macosx", arch))
-                .join(configuration);
-
             println!("cargo:rerun-if-changed={}", package_path.display());
             println!("cargo:rustc-link-search=native={}", search_path.display());
-            println!("cargo:rustc-link-lib=static={}", package.name);
+
+            // Auto-detect library type: check if static (.a) or dynamic (.dylib) was built
+            let static_lib = search_path.join(format!("lib{}.a", package.name));
+            let dynamic_lib = search_path.join(format!("lib{}.dylib", package.name));
+
+            if dynamic_lib.exists() {
+                println!("cargo:rustc-link-lib=dylib={}", package.name);
+                println!("cargo:rustc-link-arg=-Wl,-rpath,{}", search_path.display());
+            } else if static_lib.exists() {
+                println!("cargo:rustc-link-lib=static={}", package.name);
+            } else {
+                panic!(
+                    "Could not find built library for package '{}'. Expected either {} or {}",
+                    package.name,
+                    static_lib.display(),
+                    dynamic_lib.display()
+                );
+            }
+
+            // Link binary framework dependencies (xcframeworks downloaded by SPM)
+            if !self.frameworks.is_empty() {
+                println!(
+                    "cargo:rustc-link-search=framework={}",
+                    search_path.display()
+                );
+                println!("cargo:rustc-link-arg=-Wl,-rpath,{}", search_path.display());
+                // Emit metadata so downstream crates can propagate the rpath.
+                // Downstream crates can read this via DEP_<LINKS_NAME>_FRAMEWORK_PATH
+                // if the current crate has `links = "..."` in Cargo.toml.
+                println!("cargo:framework_path={}", search_path.display());
+                for framework in &self.frameworks {
+                    println!("cargo:rustc-link-lib=framework={}", framework);
+                }
+            }
+        }
+    }
+}
+
+/// Links the framework rpath from an upstream swift-rs crate with auto-detection.
+///
+/// This function automatically detects whether to propagate the framework path
+/// to downstream crates based on whether this crate has a `links` key in Cargo.toml:
+/// - If `CARGO_MANIFEST_LINKS` is set → propagates `cargo:framework_path` for downstream crates
+/// - If `CARGO_MANIFEST_LINKS` is not set → only sets rpath for this crate (final binary)
+///
+/// Call this in `build.rs` of crates that transitively depend on a swift-rs crate.
+/// The upstream crate must have `links = "<link_name>"` in Cargo.toml, and the
+/// upstream crate must be a **direct** dependency of this crate.
+///
+/// # Arguments
+/// * `link_name` - The value of the `links` key from the upstream crate's Cargo.toml
+///
+/// # Example
+///
+/// ```rust,ignore
+/// // In a crate that depends on `am2` (which has `links = "am2"`)
+/// fn main() {
+///     #[cfg(target_os = "macos")]
+///     swift_rs::link_swift_framework("am2");
+/// }
+/// ```
+#[cfg(feature = "build")]
+pub fn link_swift_framework(link_name: &str) {
+    // Auto-detect: if this crate has `links = "..."`, it can propagate to downstream.
+    // CARGO_MANIFEST_LINKS is only set when the crate has a `links` key.
+    let should_propagate = env::var("CARGO_MANIFEST_LINKS").is_ok();
+    do_link_framework_rpath(link_name, should_propagate);
+}
+
+/// Propagates framework rpath from an upstream crate that uses swift-rs.
+///
+/// Call this in `build.rs` of crates that transitively depend on a swift-rs crate.
+/// The upstream crate must have `links = "<link_name>"` in Cargo.toml.
+///
+/// # Arguments
+/// * `link_name` - The value of the `links` key from the upstream crate's Cargo.toml
+/// * `propagate` - If true, also emits `cargo:framework_path` so further downstream
+///   crates can continue the chain. Requires this crate to also have a `links` key.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// // In a crate that depends on `am2` (which has `links = "am2"`)
+/// fn main() {
+///     #[cfg(target_os = "macos")]
+///     swift_rs::propagate_framework_rpath("am2", false);
+/// }
+/// ```
+#[cfg(feature = "build")]
+pub fn propagate_framework_rpath(link_name: &str, propagate: bool) {
+    do_link_framework_rpath(link_name, propagate);
+}
+
+#[cfg(feature = "build")]
+fn do_link_framework_rpath(link_name: &str, propagate: bool) {
+    let env_var = format!(
+        "DEP_{}_FRAMEWORK_PATH",
+        link_name.to_uppercase().replace('-', "_")
+    );
+    if let Ok(path) = env::var(&env_var) {
+        if !path.is_empty() {
+            println!("cargo:rustc-link-arg=-Wl,-rpath,{}", path);
+            if propagate {
+                println!("cargo:framework_path={}", path);
+            }
         }
     }
 }

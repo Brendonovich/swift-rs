@@ -299,6 +299,11 @@ impl SwiftLinker {
                 self.visionos_min_version.as_deref(),
             );
 
+            // swift build outputs here regardless of target platform
+            let search_path = out_path
+                .join(format!("{}-apple-macosx", arch))
+                .join(configuration);
+
             command
                 // Build the package (duh)
                 .arg("build")
@@ -318,18 +323,17 @@ impl SwiftLinker {
                 .args(["-Xswiftc", "-target"])
                 .args(["-Xswiftc", &swift_target_triple])
                 .args(["-Xcc", &format!("--target={swift_target_triple}")])
-                .args(["-Xcxx", &format!("--target={swift_target_triple}")]);
+                .args(["-Xcxx", &format!("--target={swift_target_triple}")])
+                // Framework search path for packages that produce or depend on frameworks.
+                // This matches the path used for cargo:rustc-link-search below.
+                .args(["-Xswiftc", "-F"])
+                .args(["-Xswiftc", &search_path.display().to_string()]);
 
             println!("Command `{command:?}`");
 
             if !command.status().unwrap().success() {
                 panic!("Failed to compile swift package {}", package.name);
             }
-
-            let search_path = out_path
-                // swift build uses this output folder no matter what is the target
-                .join(format!("{}-apple-macosx", arch))
-                .join(configuration);
 
             println!("cargo:rerun-if-changed={}", package_path.display());
             println!("cargo:rustc-link-search=native={}", search_path.display());

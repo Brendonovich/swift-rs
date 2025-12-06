@@ -195,6 +195,8 @@ struct SwiftPackage {
 #[cfg(feature = "build")]
 pub struct SwiftLinker {
     packages: Vec<SwiftPackage>,
+    /// Binary framework dependencies (e.g., xcframeworks) that need to be linked.
+    frameworks: Vec<String>,
     macos_min_version: String,
     ios_min_version: Option<String>,
     visionos_min_version: Option<String>,
@@ -207,6 +209,7 @@ impl SwiftLinker {
     pub fn new(macos_min_version: &str) -> Self {
         Self {
             packages: vec![],
+            frameworks: vec![],
             macos_min_version: macos_min_version.to_string(),
             ios_min_version: None,
             visionos_min_version: None,
@@ -241,6 +244,18 @@ impl SwiftLinker {
             path: path.as_ref().into(),
         }]);
 
+        self
+    }
+
+    /// Adds a binary framework dependency to be linked.
+    ///
+    /// Use this for xcframework dependencies that are downloaded by SPM
+    /// (e.g., from a Swift package registry). The framework will be linked
+    /// and an rpath will be set so it can be found at runtime.
+    ///
+    /// `name` should be the framework name without the `.framework` extension.
+    pub fn with_framework(mut self, name: &str) -> Self {
+        self.frameworks.push(name.to_string());
         self
     }
 
@@ -338,6 +353,21 @@ impl SwiftLinker {
             println!("cargo:rerun-if-changed={}", package_path.display());
             println!("cargo:rustc-link-search=native={}", search_path.display());
             println!("cargo:rustc-link-lib=static={}", package.name);
+
+            // Link binary framework dependencies (xcframeworks downloaded by SPM)
+            if !self.frameworks.is_empty() {
+                println!(
+                    "cargo:rustc-link-search=framework={}",
+                    search_path.display()
+                );
+                println!(
+                    "cargo:rustc-link-arg=-Wl,-rpath,{}",
+                    search_path.display()
+                );
+                for framework in &self.frameworks {
+                    println!("cargo:rustc-link-lib=framework={}", framework);
+                }
+            }
         }
     }
 }

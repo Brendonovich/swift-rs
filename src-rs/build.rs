@@ -299,15 +299,13 @@ impl SwiftLinker {
                 self.visionos_min_version.as_deref(),
             );
 
-            // Xcode 27's SwiftPM appends its own host `-sdk`/`-target` *after* any
-            // `-Xswiftc` flags we pass, so the historical per-`swiftc` SDK/target
-            // overrides (below) stopped taking effect and a cross-compiled package
-            // (e.g. iOS) ended up built against the host macOS SDK, failing with
-            // errors like `could not build module 'AppKit'`. From Xcode 27 on we
-            // instead drive the whole build with `--triple`, which SwiftPM consumes
-            // itself so every `swiftc`/`clang` invocation gets a consistent
-            // SDK/target. Older toolchains keep the original behavior untouched.
-            let use_triple = xcode_major_version().map(|v| v >= 27).unwrap_or(false);
+            // Xcode 27's SwiftPM appends the host -sdk/-target after the -Xswiftc
+            // overrides below, so cross builds compile against the host SDK. Pass
+            // --triple there instead. macOS (host == target) is unaffected and
+            // keeps the legacy path.
+            let xcode27 = xcode_major_version().map(|v| v >= 27).unwrap_or(false);
+            let cross_compiling = !matches!(rust_target.os, RustTargetOS::MacOS);
+            let use_triple = cross_compiling && xcode27;
 
             command
                 // Build the package (duh)
@@ -327,13 +325,10 @@ impl SwiftLinker {
             command.args(["--build-path", &out_path.display().to_string()]);
 
             if !use_triple {
+                // Override the SDK and target on each swiftc instance.
                 command
-                    // Override SDK path for each swiftc instance.
-                    // Necessary for iOS compilation.
                     .args(["-Xswiftc", "-sdk"])
                     .args(["-Xswiftc", sdk_path.trim()])
-                    // Override target triple for each swiftc instance.
-                    // Necessary for iOS compilation.
                     .args(["-Xswiftc", "-target"])
                     .args(["-Xswiftc", &swift_target_triple]);
             }
@@ -348,15 +343,11 @@ impl SwiftLinker {
                 panic!("Failed to compile swift package {}", package.name);
             }
 
-            let search_path = if use_triple {
-                // With `--triple` SwiftPM emits products under the real target
-                // triple, so resolve through the `<configuration>` symlink it
-                // creates in the build directory rather than hard-coding the folder
-                // name (newer toolchains moved it to e.g. `out/Products/...`).
+            let search_path = if xcode27 {
+                // Xcode 27 relocated products under out/Products/*; reach them via
+                // the `<configuration>` symlink rather than a fixed path.
                 out_path.join(configuration)
             } else {
-                // The legacy path forces the build onto the host, so the products
-                // always land under `<arch>-apple-macosx`.
                 out_path
                     .join(format!("{}-apple-macosx", arch))
                     .join(configuration)
@@ -397,8 +388,7 @@ fn clang_link_search_path() -> String {
     panic!("clang is missing search paths");
 }
 
-/// The major version of the active Xcode (e.g. `27`), or `None` if it can't be
-/// determined. Used to decide how to pass the SDK/target to `swift build`.
+/// Major version of the active Xcode (e.g. `27`), or `None` if undetectable.
 fn xcode_major_version() -> Option<u32> {
     let output = Command::new("xcrun")
         .args(["xcodebuild", "-version"])
@@ -408,7 +398,7 @@ fn xcode_major_version() -> Option<u32> {
         return None;
     }
     let stdout = String::from_utf8_lossy(&output.stdout);
-    // The first line looks like `Xcode 27.0`.
+    // e.g. "Xcode 27.0"
     let first_line = stdout.lines().next()?;
     let version = first_line.strip_prefix("Xcode ")?.trim();
     version.split('.').next()?.parse().ok()

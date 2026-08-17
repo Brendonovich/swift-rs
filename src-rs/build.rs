@@ -434,7 +434,9 @@ fn xcode_major_version() -> Option<u32> {
 /// `arm64-apple-ios13.0[-simulator]`) to `min_major` if it is lower.
 /// Xcode 27 SDKs hard-reject deployment targets below iOS 15.
 fn clamp_ios_deployment_target(triple: &mut String, min_major: u32) {
-    let Some(idx) = triple.find("apple-ios") else { return };
+    let Some(idx) = triple.find("apple-ios") else {
+        return;
+    };
     let head_end = idx + "apple-ios".len();
     let rest = &triple[head_end..];
     let (ver, suffix) = match rest.find('-') {
@@ -455,8 +457,13 @@ fn xcode27_products_dir(
     configuration: &str,
     lib_file: &str,
 ) -> Option<std::path::PathBuf> {
-    for base in [out_path.join("Products"), out_path.join("out").join("Products")] {
-        let Ok(entries) = std::fs::read_dir(&base) else { continue };
+    for base in [
+        out_path.join("Products"),
+        out_path.join("out").join("Products"),
+    ] {
+        let Ok(entries) = std::fs::read_dir(&base) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_lowercase();
             if name.starts_with(&configuration.to_lowercase())
@@ -553,7 +560,10 @@ fn globalize_cdecl_symbols(archive: &std::path::Path, package_name: &str) {
 
 /// llvm-objcopy shipped with rustup's llvm-tools component.
 fn rustup_llvm_objcopy() -> Option<std::path::PathBuf> {
-    let sysroot = Command::new("rustc").args(["--print", "sysroot"]).output().ok()?;
+    let sysroot = Command::new("rustc")
+        .args(["--print", "sysroot"])
+        .output()
+        .ok()?;
     let sysroot = String::from_utf8_lossy(&sysroot.stdout).trim().to_string();
     let host = format!("{}-apple-darwin", std::env::consts::ARCH);
     let p = std::path::Path::new(&sysroot)

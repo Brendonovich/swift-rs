@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::{env, fmt::Display, path::Path, path::PathBuf, process::Command};
+use std::{env, fmt::Display, fs, path::Path, path::PathBuf, process::Command};
 
 use serde::Deserialize;
 
@@ -161,6 +161,153 @@ impl RustTarget {
     }
 }
 
+/// State that `swift build` writes into the package's source directory,
+/// no matter where `--build-path` points.
+///
+/// Cargo forbids build scripts from touching anything outside `OUT_DIR`, so
+/// leaving these behind makes `cargo package`/`cargo publish` fail verification
+/// with "Source directory was modified by build.rs during cargo publish".
+const SWIFTPM_SOURCE_STATE: [&str; 2] = ["Package.resolved", ".swiftpm"];
+
+enum Snapshot {
+    /// Didn't exist before the build, so anything there afterwards is ours to remove.
+    Missing,
+    File(Vec<u8>),
+    /// A directory (or something we can't read); left untouched either way.
+    Preexisting,
+}
+
+/// Restores [`SWIFTPM_SOURCE_STATE`] when dropped, including while unwinding
+/// from a failed build, so the package's source directory comes out of
+/// `swift build` exactly as it went in.
+struct SourceStateGuard {
+    entries: Vec<(PathBuf, Snapshot)>,
+}
+
+impl SourceStateGuard {
+    fn new(package_path: &Path) -> Self {
+        let entries = SWIFTPM_SOURCE_STATE
+            .iter()
+            .map(|name| {
+                let path = package_path.join(name);
+                let snapshot = match fs::read(&path) {
+                    Ok(contents) => Snapshot::File(contents),
+                    Err(_) if path.exists() => Snapshot::Preexisting,
+                    Err(_) => Snapshot::Missing,
+                };
+                (path, snapshot)
+            })
+            .collect();
+
+        Self { entries }
+    }
+}
+
+impl Drop for SourceStateGuard {
+    fn drop(&mut self) {
+        for (path, snapshot) in &self.entries {
+            match snapshot {
+                Snapshot::Missing => {
+                    let _ = if path.is_dir() {
+                        fs::remove_dir_all(path)
+                    } else {
+                        fs::remove_file(path)
+                    };
+                }
+                Snapshot::File(contents) => {
+                    if fs::read(path).ok().as_ref() != Some(contents) {
+                        let _ = fs::write(path, contents);
+                    }
+                }
+                Snapshot::Preexisting => {}
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{SourceStateGuard, SWIFTPM_SOURCE_STATE};
+    use std::{fs, path::PathBuf};
+
+    /// A scratch package directory, removed when the test finishes.
+    struct TempDir(PathBuf);
+
+    impl TempDir {
+        fn new(name: &str) -> Self {
+            let path = std::env::temp_dir().join(format!("swift-rs-test-{name}"));
+            let _ = fs::remove_dir_all(&path);
+            fs::create_dir_all(&path).unwrap();
+            Self(path)
+        }
+    }
+
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn removes_state_the_build_created() {
+        let dir = TempDir::new("created");
+
+        {
+            let _guard = SourceStateGuard::new(&dir.0);
+            fs::write(dir.0.join("Package.resolved"), b"generated").unwrap();
+            fs::create_dir_all(dir.0.join(".swiftpm").join("configuration")).unwrap();
+        }
+
+        for artifact in SWIFTPM_SOURCE_STATE {
+            assert!(!dir.0.join(artifact).exists(), "{artifact} was left behind");
+        }
+    }
+
+    #[test]
+    fn restores_a_checked_in_lockfile() {
+        let dir = TempDir::new("checked-in");
+        let resolved = dir.0.join("Package.resolved");
+        fs::write(&resolved, b"original").unwrap();
+
+        {
+            let _guard = SourceStateGuard::new(&dir.0);
+            fs::write(&resolved, b"rewritten by swift build").unwrap();
+        }
+
+        assert_eq!(fs::read(&resolved).unwrap(), b"original");
+    }
+
+    #[test]
+    fn leaves_a_preexisting_directory_alone() {
+        let dir = TempDir::new("preexisting");
+        let swiftpm = dir.0.join(".swiftpm");
+        fs::create_dir_all(&swiftpm).unwrap();
+        fs::write(swiftpm.join("keep-me"), b"user data").unwrap();
+
+        drop(SourceStateGuard::new(&dir.0));
+
+        assert_eq!(fs::read(swiftpm.join("keep-me")).unwrap(), b"user data");
+    }
+
+    #[test]
+    fn cleans_up_when_the_build_panics() {
+        let dir = TempDir::new("panicking");
+        let resolved = dir.0.join("Package.resolved");
+
+        let result = std::panic::catch_unwind({
+            let dir = dir.0.clone();
+            move || {
+                let _guard = SourceStateGuard::new(&dir);
+                fs::write(dir.join("Package.resolved"), b"generated").unwrap();
+                panic!("Failed to compile swift package");
+            }
+        });
+
+        assert!(result.is_err());
+        assert!(!resolved.exists(), "Package.resolved survived the panic");
+    }
+}
+
 struct SwiftPackage {
     name: String,
     path: PathBuf,
@@ -276,6 +423,10 @@ impl SwiftLinker {
                 .args(["-Xswiftc", &swift_target_triple])
                 .args(["-Xcc", &format!("--target={swift_target_triple}")])
                 .args(["-Xcxx", &format!("--target={swift_target_triple}")]);
+
+            // `swift build` writes Package.resolved (and sometimes .swiftpm) into
+            // the package source directory; undo that once the build is done.
+            let _source_state_guard = SourceStateGuard::new(&package_path);
 
             if !command.status().unwrap().success() {
                 panic!("Failed to compile swift package {}", package.name);

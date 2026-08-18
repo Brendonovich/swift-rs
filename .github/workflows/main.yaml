@@ -32,6 +32,15 @@ jobs:
         env:
           TEST_SWIFT_RS: "true"
         run: cargo +${{ matrix.rust }} test --features build
+      - name: Ensure build scripts didn't modify the source tree
+        # `swift build` writes Package.resolved into the swift package's source
+        # directory, which makes `cargo package`/`cargo publish` fail verification.
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::The source tree was modified by a build script:"
+            git status --porcelain
+            exit 1
+          fi
       - name: Check Code Formatting
         run: cargo +${{ matrix.rust }} fmt --all -- --check
       - name: Lints

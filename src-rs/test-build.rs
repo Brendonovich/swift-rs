@@ -15,6 +15,9 @@ fn main() {
         SwiftLinker::new("10.15")
             .with_ios("11")
             .with_package("test-swift", "tests/swift-pkg")
+            // Has a remote dependency, so SwiftPM writes a Package.resolved that
+            // must not be left behind; see tests/test_source_dir.rs.
+            .with_package("test-swift-remote", "tests/swift-pkg-remote")
             .link();
     }
 }

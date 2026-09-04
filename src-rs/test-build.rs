@@ -16,6 +16,7 @@ fn main() {
             .with_ios("11")
             .with_visionos("1")
             .with_package("test-swift", "tests/swift-pkg")
+            .with_package("test-swift-secondary", "tests/swift-pkg-secondary")
             .link();
     }
 }

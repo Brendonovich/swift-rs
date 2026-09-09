@@ -322,6 +322,16 @@ impl SwiftLinker {
                 // Release/Debug configuration
                 .args(["-c", configuration]);
 
+            // SwiftPM's own sandbox (sandbox-exec) cannot nest inside another
+            // sandbox: builds driven from sandboxed environments (CI jails,
+            // agent sandboxes) die with `sandbox_apply: Operation not
+            // permitted`. Opt out explicitly where needed; default behavior
+            // is unchanged.
+            println!("cargo:rerun-if-env-changed=SWIFT_RS_DISABLE_SANDBOX");
+            if env::var_os("SWIFT_RS_DISABLE_SANDBOX").is_some() {
+                command.arg("--disable-sandbox");
+            }
+
             if use_triple {
                 command.args(["--triple", &swift_target_triple]);
             } else {
@@ -502,6 +512,20 @@ fn globalize_cdecl_symbols(archive: &std::path::Path, package_name: &str) {
             .collect::<String>()
     };
     let pkg = norm(package_name);
+
+    // The SwiftRs support module's own @_cdecl exports (retain_object,
+    // release_object, string_from_bytes, data_from_bytes) are referenced by
+    // the swift-rs Rust crate but live in a *dependency* member, which the
+    // own-member guard below skips in every archive — so nothing ever exports
+    // them and the final link fails with "undefined symbols" for exactly
+    // those names. They must be promoted in exactly ONE archive of the final
+    // link (see the duplicate-globals guard above), and only the application
+    // knows which: name that package in SWIFT_RS_RUNTIME_ARCHIVE (a tauri
+    // app sets `Tauri`, the one package every tauri iOS app links once).
+    println!("cargo:rerun-if-env-changed=SWIFT_RS_RUNTIME_ARCHIVE");
+    let exports_runtime = env::var("SWIFT_RS_RUNTIME_ARCHIVE")
+        .map(|v| norm(&v) == pkg)
+        .unwrap_or(false);
     let mut in_own_member = false;
     let mut candidates: Vec<String> = Vec::new();
     let mut occurrences: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
@@ -511,7 +535,8 @@ fn globalize_cdecl_symbols(archive: &std::path::Path, package_name: &str) {
             let header = line.trim_end_matches(':').trim_end_matches(')');
             let member = header.rsplit('(').next().unwrap_or(header);
             if let Some(module) = member.strip_suffix(".o") {
-                in_own_member = norm(module) == pkg;
+                let module = norm(module);
+                in_own_member = module == pkg || (exports_runtime && module == "swiftrs");
                 continue;
             }
         }

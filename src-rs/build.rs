@@ -322,11 +322,8 @@ impl SwiftLinker {
                 // Release/Debug configuration
                 .args(["-c", configuration]);
 
-            // SwiftPM's own sandbox (sandbox-exec) cannot nest inside another
-            // sandbox: builds driven from sandboxed environments (CI jails,
-            // agent sandboxes) die with `sandbox_apply: Operation not
-            // permitted`. Opt out explicitly where needed; default behavior
-            // is unchanged.
+            // SwiftPM's sandbox cannot nest inside another sandbox (CI jails,
+            // agent sandboxes) — allow opting out.
             println!("cargo:rerun-if-env-changed=SWIFT_RS_DISABLE_SANDBOX");
             if env::var_os("SWIFT_RS_DISABLE_SANDBOX").is_some() {
                 command.arg("--disable-sandbox");
@@ -513,15 +510,11 @@ fn globalize_cdecl_symbols(archive: &std::path::Path, package_name: &str) {
     };
     let pkg = norm(package_name);
 
-    // The SwiftRs support module's own @_cdecl exports (retain_object,
-    // release_object, string_from_bytes, data_from_bytes) are referenced by
-    // the swift-rs Rust crate but live in a *dependency* member, which the
-    // own-member guard below skips in every archive — so nothing ever exports
-    // them and the final link fails with "undefined symbols" for exactly
-    // those names. They must be promoted in exactly ONE archive of the final
-    // link (see the duplicate-globals guard above), and only the application
-    // knows which: name that package in SWIFT_RS_RUNTIME_ARCHIVE (a tauri
-    // app sets `Tauri`, the one package every tauri iOS app links once).
+    // The SwiftRs module's own @_cdecl exports live in a dependency member,
+    // which the own-member guard skips — so no archive exports them and the
+    // final link fails. They must be global in exactly ONE archive (see the
+    // duplicate-globals guard above); the app names it in
+    // SWIFT_RS_RUNTIME_ARCHIVE (tauri apps: `Tauri`).
     println!("cargo:rerun-if-env-changed=SWIFT_RS_RUNTIME_ARCHIVE");
     let exports_runtime = env::var("SWIFT_RS_RUNTIME_ARCHIVE")
         .map(|v| norm(&v) == pkg)

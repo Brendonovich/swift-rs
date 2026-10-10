@@ -128,6 +128,7 @@ fn test_complex() {
 }
 
 swift!(fn echo_data(data: &SRData) -> SRData);
+swift!(fn echo_data_secondary(data: &SRData) -> SRData);
 
 #[test]
 #[serial]
@@ -139,6 +140,17 @@ fn test_data() {
             let data = unsafe { echo_data(&bytes.into()) };
             assert_eq!(data.as_slice(), bytes);
         }
+    });
+}
+
+#[test]
+#[serial]
+fn test_two_packages_using_swift_rs() {
+    test_with_leaks!(|| {
+        let bytes = b"two Swift packages".as_slice();
+        let first = unsafe { echo_data(&bytes.into()) };
+        let second = unsafe { echo_data_secondary(&first) };
+        assert_eq!(second.as_slice(), bytes);
     });
 }
 

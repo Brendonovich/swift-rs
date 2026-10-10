@@ -32,6 +32,15 @@ jobs:
         env:
           TEST_SWIFT_RS: "true"
         run: cargo +${{ matrix.rust }} test --features build
+      - name: Link optimized iOS simulator tests
+        if: matrix.rust == 'stable'
+        env:
+          TEST_SWIFT_RS: "true"
+        run: |
+          rustup target add --toolchain ${{ matrix.rust }} aarch64-apple-ios-sim
+          rustup component add --toolchain ${{ matrix.rust }} llvm-tools
+          cargo +${{ matrix.rust }} test --release --features build \
+            --target aarch64-apple-ios-sim --no-run
       - name: Check Code Formatting
         run: cargo +${{ matrix.rust }} fmt --all -- --check
       - name: Lints

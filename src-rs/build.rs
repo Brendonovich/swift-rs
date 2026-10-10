@@ -481,8 +481,20 @@ fn xcode27_products_dir(
 /// global with llvm-objcopy (rustup's llvm-tools component — Apple ships none).
 ///
 /// Guards, each learned from a distinct linker failure:
-/// - only symbols from the package's OWN object member (archives embed copies
-///   of dependency modules; promoting those in every archive duplicates globals)
+/// - only symbols from the package's OWN object member, OR from `SwiftRs.o`
+///   (archives embed copies of dependency modules; promoting those in every
+///   archive duplicates globals — but `SwiftRs.o` is this crate's own vendored
+///   runtime shim (src-swift/lib.swift), compiled as a *separate* SwiftPM
+///   target in every consumer's generated package rather than folded into
+///   `<package>.o`. Every consumer's archive carries its own private copy of
+///   its `retain_object`/`release_object`/`string_from_bytes`/etc., so the
+///   same allowlist a consumer gets for its own module has to extend to this
+///   fixed, well-known name too. Verified against a real multi-crate app
+///   (tauri core + 6 plugins, each with its own `SwiftRs.o`, linked into one
+///   binary): the static archive linker resolves each duplicate-named global
+///   from whichever archive satisfies it first and never complains about the
+///   others' still-present copies, so this does not reintroduce the
+///   "malformed atom files with duplicate names" crash below.
 /// - only plain C names not starting with '_' (compiler helpers like
 ///   ___swift_closure_destructor repeat)
 /// - only names unique within the archive
@@ -502,6 +514,7 @@ fn globalize_cdecl_symbols(archive: &std::path::Path, package_name: &str) {
             .collect::<String>()
     };
     let pkg = norm(package_name);
+    let runtime_shim = norm("SwiftRs");
     let mut in_own_member = false;
     let mut candidates: Vec<String> = Vec::new();
     let mut occurrences: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
@@ -511,7 +524,8 @@ fn globalize_cdecl_symbols(archive: &std::path::Path, package_name: &str) {
             let header = line.trim_end_matches(':').trim_end_matches(')');
             let member = header.rsplit('(').next().unwrap_or(header);
             if let Some(module) = member.strip_suffix(".o") {
-                in_own_member = norm(module) == pkg;
+                let norm_module = norm(module);
+                in_own_member = norm_module == pkg || norm_module == runtime_shim;
                 continue;
             }
         }

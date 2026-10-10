@@ -72,23 +72,23 @@ public class SRString: SRData {
 }
 
 @_cdecl("retain_object")
-func retainObject(ptr: UnsafeMutableRawPointer) {
+public func retainObject(ptr: UnsafeMutableRawPointer) {
     let _ = Unmanaged<AnyObject>.fromOpaque(ptr).retain()
 }
 
 @_cdecl("release_object")
-func releaseObject(ptr: UnsafeMutableRawPointer) {
+public func releaseObject(ptr: UnsafeMutableRawPointer) {
     let _ = Unmanaged<AnyObject>.fromOpaque(ptr).release()
 }
 
 @_cdecl("data_from_bytes")
-func dataFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRData {
+public func dataFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRData {
     let buffer = UnsafeBufferPointer(start: data, count: size)
     return SRData(Array(buffer))
 }
 
 @_cdecl("string_from_bytes")
-func stringFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRString {
+public func stringFromBytes(data: UnsafePointer<UInt8>, size: Int) -> SRString {
     let data = dataFromBytes(data: data, size: size);
     return SRString(data)
 }

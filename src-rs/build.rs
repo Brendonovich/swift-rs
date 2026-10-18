@@ -305,7 +305,18 @@ impl SwiftLinker {
             // keeps the legacy path.
             let xcode27 = xcode_major_version().map(|v| v >= 27).unwrap_or(false);
             let cross_compiling = !matches!(rust_target.os, RustTargetOS::MacOS);
-            let use_triple = cross_compiling && xcode27;
+            // `--triple` for every cross build, not only under Xcode 27.
+            //
+            // `--arch` plus `-Xswiftc -target` does retarget the compiler, but
+            // SwiftPM itself still resolves the package graph for the HOST
+            // triple (arm64-apple-macosx). That is what picks the slice of a
+            // binary target (.xcframework): an iOS-only framework such as
+            // GoogleMobileAds has no macOS slice, so its module is never
+            // exposed and the dependent target fails with
+            // "no such module 'GoogleMobileAds'" (#74). With `--triple
+            // arm64-apple-ios…` SwiftPM selects the ios-arm64 slice, copies the
+            // framework next to the products, and the same package compiles.
+            let use_triple = cross_compiling;
 
             // Xcode 27 SDKs reject iOS deployment targets below 15
             // ("supported deployment target versions is 15.0 to 27.0.x") and
@@ -363,6 +374,21 @@ impl SwiftLinker {
                 } else {
                     xcode27_products_dir(&out_path, configuration, &lib_file).unwrap_or(direct)
                 }
+            } else if use_triple {
+                // With `--triple`, SwiftPM names the products directory after
+                // the triple's os, without its version and with the
+                // `-simulator` suffix kept: `arm64-apple-ios/release`,
+                // `arm64-apple-ios-simulator/debug`, never
+                // `arm64-apple-macosx/…` as the `--arch` path produced.
+                let os_dir = swift_target_triple
+                    .split('-')
+                    .nth(2)
+                    .map(|os| os.trim_end_matches(|c: char| c.is_ascii_digit() || c == '.'))
+                    .unwrap_or("ios");
+                let simulator = if swift_target_triple.ends_with("-simulator") { "-simulator" } else { "" };
+                out_path
+                    .join(format!("{}-apple-{}{}", arch, os_dir, simulator))
+                    .join(configuration)
             } else {
                 out_path
                     .join(format!("{}-apple-macosx", arch))

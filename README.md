@@ -256,8 +256,8 @@ import SwiftRs
 
 @_cdecl("swift_print")
 public func swiftPrint(value: SRString) {
-    // .to_string() converts the SRString to a Swift String
-    print(value.to_string())
+    // .toString() converts the SRString to a Swift String
+    print(value.toString())
 }
 ```
 
@@ -303,7 +303,7 @@ fn main() {
     let value_str: &str = &*value_srstring;
 
     // SRString also implements Display
-    println!("{}", value_srstring); // Will print "lorem ipsum" to the console
+    println!("{value_srstring}"); // Will print "lorem ipsum" to the console
 }
 ```
 

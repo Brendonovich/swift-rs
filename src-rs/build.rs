@@ -344,6 +344,12 @@ impl SwiftLinker {
                 .args(["-Xcc", &format!("--target={swift_target_triple}")])
                 .args(["-Xcxx", &format!("--target={swift_target_triple}")]);
 
+            // Swift Build partially links target objects before archiving them.
+            // Preserve internal @_cdecl entry points for the final Rust link.
+            if xcode27 {
+                command.args(["-Xlinker", "-keep_private_externs"]);
+            }
+
             println!("Command `{command:?}`");
 
             if !command.status().unwrap().success() {
